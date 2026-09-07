@@ -1,7 +1,6 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Shell } from "@/components/chrome";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { VAULT, type VaultDoc } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -70,7 +69,6 @@ export function VaultPage() {
                 >
                   <span className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium">{d.title}</span>
-                    <Badge variant={d.class === "Restricted" ? "warn" : "default"}>{d.class}</Badge>
                   </span>
                   <span className="mt-1 block font-mono text-xs text-faint">
                     {d.kind} · {d.pages} pp · {d.updated}
@@ -86,7 +84,6 @@ export function VaultPage() {
         <article className="hidden min-h-0 flex-1 overflow-y-auto p-6 md:block">
           {active ? (
             <div className="mx-auto max-w-xl">
-              <Badge variant={active.class === "Restricted" ? "warn" : "ok"}>{active.class}</Badge>
               <h2 className="mt-3 font-display text-2xl font-medium tracking-tight">{active.title}</h2>
               <p className="mt-1 font-mono text-xs uppercase tracking-widest text-faint">
                 {active.kind} · {active.pages} pages · indexed {active.updated}

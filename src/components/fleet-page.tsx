@@ -2,7 +2,6 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Shell } from "@/components/chrome";
 import { Crop } from "@/components/crop";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MODELS, SCENARIOS } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -57,7 +56,6 @@ export function FleetPage() {
                   <h2 className="text-lg font-medium">{m.name}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">{m.role}</p>
                 </div>
-                <Badge variant={m.loaded ? "ok" : "default"}>{m.loaded ? "Loaded" : "Standby"}</Badge>
               </div>
               <dl className="mt-4 grid grid-cols-3 gap-2 font-mono text-xs uppercase tracking-wider text-faint">
                 <div>
@@ -73,13 +71,8 @@ export function FleetPage() {
                   <dd className="mt-1 text-foreground">{m.latency}</dd>
                 </div>
               </dl>
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {m.tasks.map((t) => (
-                  <Badge key={t}>{t}</Badge>
-                ))}
-              </div>
             </article>
-          ))}
+          ))} 
         </div>
 
         <section className="mt-14">

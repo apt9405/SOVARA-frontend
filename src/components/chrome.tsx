@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mark } from "@/components/mark";
 import { cn } from "@/lib/utils";
@@ -33,32 +33,6 @@ function useActivePath() {
   return useRouterState({ select: (s) => s.location.pathname });
 }
 
-export function ClassTape() {
-  const items = [
-    "Internal",
-    "Western Refinery Complex",
-    "Air gap sealed",
-    "10.12.0.0/16 only",
-    "Egress denied",
-    "Open-weight · on-prem",
-  ];
-  const line = [...items, ...items];
-  return (
-    <div className="relative flex h-8 items-center overflow-hidden border-b border-border bg-elevated">
-      <div className="tape-marquee flex min-w-max items-center gap-8 px-4 font-mono text-xs uppercase tracking-widest text-muted-foreground">
-        {line.map((item, i) => (
-          <span key={`${item}-${i}`} className="flex items-center gap-8">
-            <span>{item}</span>
-            <span className="text-faint" aria-hidden>
-              /
-            </span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function Header() {
   const path = useActivePath();
   const [open, setOpen] = useState(false);
@@ -67,12 +41,8 @@ export function Header() {
     <header className="relative z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-3 backdrop-blur-sm md:px-5">
       <Link to="/" className="flex items-center gap-2.5 pr-2">
         <Mark className="size-6" />
-        <span className="font-display text-sm font-semibold tracking-wide">Bastion</span>
+        <span className="font-display text-sm font-semibold tracking-wide">SOVARA</span>
       </Link>
-      <Badge variant="ok" className="hidden sm:inline-flex">
-        <span className="led-ok size-1.5 rounded-full bg-ok" />
-        Sealed
-      </Badge>
       <nav className="ml-4 hidden items-center gap-1 lg:flex">
         {NAV.map((item) => {
           const active = isActive(path, item.to);
@@ -91,7 +61,6 @@ export function Header() {
         })}
       </nav>
       <div className="ml-auto flex items-center gap-2">
-        <span className="hidden font-mono text-xs text-faint md:inline">gpu-0 · 48 GB</span>
         <Button
           variant="ghost"
           size="icon"
@@ -170,7 +139,6 @@ export function Shell({
         mode === "app" ? "h-dvh overflow-hidden" : "min-h-dvh",
       )}
     >
-      <ClassTape />
       <Header />
       <div className={cn("flex min-h-0 flex-1 flex-col", mode === "app" && "overflow-hidden")}>
         {children}

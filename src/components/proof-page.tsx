@@ -2,7 +2,6 @@ import { ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/chrome";
 import { Crop } from "@/components/crop";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LOCAL_NET, SEED_PACKETS, type Packet } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -100,7 +99,6 @@ export function ProofPage() {
           <section className="overflow-hidden rounded-xl border border-border">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="text-sm font-medium">Packet log</h2>
-              <Badge variant="ok">Live · local</Badge>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-lg text-left font-mono text-xs">

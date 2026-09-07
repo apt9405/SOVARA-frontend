@@ -15,7 +15,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Shell } from "@/components/chrome";
 import { Crop } from "@/components/crop";
 import { PidDrawing, ScanDocument } from "@/components/artifacts";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -186,9 +185,6 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
         <section className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-2 border-b border-border px-3 py-2 md:px-4">
             <p className="text-sm font-medium">Agent</p>
-            <Badge variant="ok" className="hidden sm:inline-flex">
-              {model.name}
-            </Badge>
             <div className="ml-auto flex rounded-md bg-secondary p-0.5 lg:hidden">
               <button
                 type="button"
@@ -397,7 +393,6 @@ function ContextRail({
               <li key={t.id} className="rounded-md border border-border px-2.5 py-2">
                 <p className="flex items-center justify-between font-mono text-xs">
                   {t.name}
-                  <Badge variant={t.status === "ok" ? "ok" : "warn"}>{t.status}</Badge>
                 </p>
                 <p className="mt-1 text-xs leading-snug text-muted-foreground">{t.detail}</p>
               </li>
