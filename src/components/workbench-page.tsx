@@ -409,8 +409,8 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card xl:flex">
           <div className="border-b border-border p-3">
-            <Button type="button" className="h-11 w-full justify-start gap-2 rounded-md" onClick={createNewChat}>
-              <Plus className="size-4" />
+            <Button type="button"  className="h-8 w-half justify-start gap-1 rounded-md bg-transparent text-white" onClick={createNewChat}>
+              <Plus className="size-5" />
               New chat
             </Button>
           </div>
@@ -418,7 +418,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
             <section className="border-b border-border px-3 py-3">
               <div className="flex items-center gap-2 px-1">
                 <MessageSquareText className="size-3.5 text-primary" />
-                <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Previous chats</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Recents</p>
               </div>
               <div className="mt-2 space-y-1">
                 {openChats.length > 0 ? (
@@ -455,7 +455,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               </div>
             </section>
 
-            {closedChats.length > 0 ? (
+            {/* {closedChats.length > 0 ? (
               <section className="border-b border-border px-3 py-3">
                 <div className="flex items-center gap-2 px-1">
                   <MessageSquareText className="size-3.5 text-primary" />
@@ -505,7 +505,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                   </span>
                 </button>
               ))}
-            </nav>
+            </nav> */}
 
             <section className="border-t border-border px-3 py-3">
               <div className="flex items-center gap-2 px-1">
@@ -787,6 +787,7 @@ function ContextRail({
   planDone: boolean;
   tools: ToolRow[];
   artifacts: ArtifactId[];
+
   preview: "scan" | "pid" | "code" | null;
   reason?: string;
 }) {
