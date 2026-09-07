@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   MessageSquareText,
   Paperclip,
+  PaperclipIcon,
   Play,
   Plus,
   Presentation,
@@ -697,7 +698,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                       aria-label="Attach file"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <Plus />
+                      <PaperclipIcon />
                     </Button>
                     <Textarea
                       value={draft}
