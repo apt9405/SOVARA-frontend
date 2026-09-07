@@ -164,6 +164,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   ]);
   const [activeChatId, setActiveChatId] = useState("chat-current");
   const [mobilePane, setMobilePane] = useState<"chat" | "context">("chat");
+  const [recentExpanded, setRecentExpanded] = useState(true); 
   const endRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -410,17 +411,23 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card xl:flex">
           <div className="border-b border-border p-3">
-            <Button type="button"  className="h-8 w- justify-start gap-1 rounded-md  bg-#1F261F text-left text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)] transition-all hover:bg-grey/80 hover:shadow-[0_4px_10px_rgba(0,0,0,0.45)] active:translate-y-px" onClick={createNewChat}>
+            <Button type="button"  className="h-8 w-fyll justify-start gap-1 rounded-md  bg-trans text-left text-white " onClick={createNewChat}>
               <Plus className="size-5" />
               New chat
             </Button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <section className="border-b border-border px-3 py-3">
-              <Button className="h-8 w- justify-start gap-1 rounded-md  bg-#1F261F text-left text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)] transition-all hover:bg-grey/80 hover:shadow-[0_4px_10px_rgba(0,0,0,0.45)] active:translate-y-px" onClick={createNewChat}>
+              <Button 
+              type="button"
+              aria-expanded={recentExpanded}
+              onClick={() => setRecentExpanded((expanded) => !expanded)}
+              className="h-8 w-full justify-start gap-1 rounded-md  bg-trans text-left text-white " >
                 <MessageSquareText className="size-3.5 text-primary" />
                 <p className="font-mono text-[11px] uppercase tracking-[0.24em] ">Recents</p>
               </Button>
+
+              {recentExpanded ? (
               <div className="mt-2 space-y-1">
                 {openChats.length > 0 ? (
                   openChats.map((chat) => {
@@ -454,6 +461,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                   <p className="px-1 text-[12px] text-muted-foreground">No open chats yet.</p>
                 )}
               </div>
+              ) : null}
             </section>
 
             {/* {closedChats.length > 0 ? (
@@ -509,10 +517,10 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
             </nav> */}
 
             <section className="border-t border-border px-3 py-3">
-              <div className="flex items-center gap-2 px-1">
+              <Button className="h-8 w-full justify-start gap-1 rounded-md  bg-trans text-left text-white">
                 <FolderKanban className="size-4 text-primary" />
-                <p className="font-mono text-xs uppercase tracking-widest text-faint">Artifacts</p>
-              </div>
+                <p className="font-mono text-xs uppercase tracking-widest ">Artifacts</p>
+              </Button>
               <div className="mt-3 space-y-2">
                 {artifacts.length > 0 ? (
                   artifacts.map((id) => {
