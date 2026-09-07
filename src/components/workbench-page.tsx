@@ -730,19 +730,18 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 </div>
               </div>
             </div>
-            <div>
-            
-              
-            <Button
-            type="button"
-            aria-expanded={reportExpanded}
-            onClick={() => setReportExpanded((expanded) => !expanded)}
+            <div >
+             <Button
+             type="button"
+             aria-expanded={reportExpanded}
+             onClick={() => setReportExpanded((expanded) => !expanded)}
              className="h-8 w-full justify-start rounded-md bg-transparent text-left text-white"
              >
               Report
              </Button>
 
              {reportExpanded ? (
+            
               <ContextRail
                 plan={plan}
                 planDone={planDone}
@@ -751,6 +750,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 preview={preview}
                 reason={route?.reason}
               />
+           
              ) : null}
             
             </div>
