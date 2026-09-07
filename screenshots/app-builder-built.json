@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Bastion",
+      "hasCanvas": false,
+      "bodyTextLen": 3668,
+      "bodyTextHash": "4e0775ccd2e3d6d82cf4464ec70111e19f6f8f8d9fc1f3a496c967ff325bd58d",
+      "bodyTextPrefix": "INTERNAL / WESTERN REFINERY COMPLEX / AIR GAP SEALED / 10.12.0.0",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Bastion",
+      "hasCanvas": false,
+      "bodyTextLen": 3218,
+      "bodyTextHash": "71fb33dca62378ab9d0bf524c26610651036af70c38175725956c319c6aba299",
+      "bodyTextPrefix": "INTERNAL / WESTERN REFINERY COMPLEX / AIR GAP SEALED / 10.12.0.0",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
