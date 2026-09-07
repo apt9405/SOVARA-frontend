@@ -164,7 +164,8 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   ]);
   const [activeChatId, setActiveChatId] = useState("chat-current");
   const [mobilePane, setMobilePane] = useState<"chat" | "context">("chat");
-  const [recentExpanded, setRecentExpanded] = useState(true); 
+  const [recentExpanded, setRecentExpanded] = useState(true);
+  const [reportExpanded, setReportExpanded] = useState(false); 
   const endRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -704,6 +705,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                       size="icon"
                       variant="muted"
                       aria-label="Attach file"
+                      className="h-12 w-12 shrink-0 rounded-full"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <PaperclipIcon />
@@ -718,23 +720,29 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                         }
                       }}
                       placeholder="Task the agent - scans, code, P&IDs, notes"
-                      className="min-h-12 resize-none"
+                      className=" min-h-12 resize-none"
                       rows={2}
                     />
-                    <Button size="icon" aria-label="Send" disabled={busy} onClick={onSend}>
+                    <Button size="icon" aria-label="Send" className="h-12 w-12 shrink-0 rounded-full" disabled={busy} onClick={onSend}>
                       <Send />
                     </Button>
                   </div>
                 </div>
               </div>
             </div>
+            <div>
+            
+              
+            <Button
+            type="button"
+            aria-expanded={reportExpanded}
+            onClick={() => setReportExpanded((expanded) => !expanded)}
+             className="h-8 w-full justify-start rounded-md bg-transparent text-left text-white"
+             >
+              Report
+             </Button>
 
-            <aside
-              className={cn(
-                "min-h-0 w-full shrink-0 flex-col overflow-y-auto border-border bg-card lg:flex lg:w-80 lg:border-l",
-                mobilePane === "context" ? "flex" : "hidden",
-              )}
-            >
+             {reportExpanded ? (
               <ContextRail
                 plan={plan}
                 planDone={planDone}
@@ -743,7 +751,9 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 preview={preview}
                 reason={route?.reason}
               />
-            </aside>
+             ) : null}
+            
+            </div>
           </div>
         </section>
       </div>
