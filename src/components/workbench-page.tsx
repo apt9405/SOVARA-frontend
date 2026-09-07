@@ -410,17 +410,17 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card xl:flex">
           <div className="border-b border-border p-3">
-            <Button type="button"  className="h-8 w-half justify-start gap-1 rounded-md bg-transparent text-white" onClick={createNewChat}>
+            <Button type="button"  className="h-8 w- justify-start gap-1 rounded-md  bg-#1F261F text-left text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)] transition-all hover:bg-grey/80 hover:shadow-[0_4px_10px_rgba(0,0,0,0.45)] active:translate-y-px" onClick={createNewChat}>
               <Plus className="size-5" />
               New chat
             </Button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <section className="border-b border-border px-3 py-3">
-              <div className="flex items-center gap-2 px-1">
+              <Button className="h-8 w- justify-start gap-1 rounded-md  bg-#1F261F text-left text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)] transition-all hover:bg-grey/80 hover:shadow-[0_4px_10px_rgba(0,0,0,0.45)] active:translate-y-px" onClick={createNewChat}>
                 <MessageSquareText className="size-3.5 text-primary" />
-                <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Recents</p>
-              </div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.24em] ">Recents</p>
+              </Button>
               <div className="mt-2 space-y-1">
                 {openChats.length > 0 ? (
                   openChats.map((chat) => {
