@@ -93,10 +93,10 @@ export function LandingPage() {
                 Sovereign · On-premise · Open-weight
               </p>
               <h1 className="mt-4 max-w-xl font-display text-4xl font-medium leading-tight tracking-tight md:text-5xl lg:text-6xl">
-                The workbench that stays inside the fence.
+                Sovereign Orchestration for Verified AI Reasoning & Automation.
               </h1>
               <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
-                Refineries, PSUs, defence production, secretariat notes. Bastion runs
+                Refineries, PSUs, defence production, secretariat notes. SOVARA runs
                 the agent on your GPU — scanned drawings, SOPs, and code included —
                 and never opens a socket past the plant network.
               </p>
@@ -195,8 +195,8 @@ export function LandingPage() {
 
         <footer className="border-t border-border py-8">
           <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6">
-            <p>Bastion · prototype for on-prem GPU servers. No cloud inference.</p>
-            <p className="font-mono text-xs uppercase tracking-widest">Air gap as a product, not a slogan.</p>
+            <p>SOVARA · prototype for on-prem GPU servers. No cloud inference.</p>
+            <p className="font-mono text-xs uppercase tracking-widest">Where sovereignty meets intelligence.</p>
           </div>
         </footer>
       </main>

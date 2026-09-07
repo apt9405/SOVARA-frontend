@@ -134,7 +134,7 @@ export type LocalHost = {
 };
 
 export const LOCAL_NET: LocalHost[] = [
-  { ip: "10.12.0.10", name: "bastion-ops", role: "Workstation" },
+  { ip: "10.12.0.10", name: "SOVARA-ops", role: "Workstation" },
   { ip: "10.12.0.4", name: "gpu-0", role: "llama.cpp" },
   { ip: "10.12.0.5", name: "gpu-1", role: "vLLM" },
   { ip: "10.12.0.8", name: "qdrant", role: "Vector index" },
@@ -262,7 +262,7 @@ export const APPROVAL_NOTE_HTML = `<html><head><meta charset="utf-8"><title>Appr
 <body>
 <p class="cls">Internal · Western Refinery Complex · Unit 3</p>
 <h1>Approval note — Fired heater H-302</h1>
-<p>To: Plant Manager, Unit 3<br>From: Inspection cell / Bastion workbench<br>Date: 7 September 2026<br>Subject: Restart fitness after April turnaround inspection</p>
+<p>To: Plant Manager, Unit 3<br>From: Inspection cell / SOVARA workbench<br>Date: 7 September 2026<br>Subject: Restart fitness after April turnaround inspection</p>
 <p><b>Facts.</b> Scanned report H-302 (3 pages, including handwritten margin notes) was read on-premises. Three deviations sit outside OISD-STD-116 firebox envelope:</p>
 <ol>
 <li>Tube-skin temperature +48°C above design on pass 3.</li>

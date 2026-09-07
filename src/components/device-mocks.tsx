@@ -6,7 +6,7 @@ function MiniBar({ right = "Sealed" }: { right?: string }) {
   return (
     <div className="flex items-center gap-2 border-b border-border px-2.5 py-1.5">
       <Mark className="size-3.5" />
-      <span className="text-xs font-medium">Bastion</span>
+      <span className="text-xs font-medium">SOVARA</span>
       <span className="ml-auto flex items-center gap-1 font-mono text-xs text-ok">
         <span className="led-ok size-1.5 rounded-full bg-ok" />
         {right}

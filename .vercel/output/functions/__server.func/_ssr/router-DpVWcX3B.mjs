@@ -308,7 +308,7 @@ function PreviewHostBridge() {
 	return null;
 }
 var styles_default = "/assets/styles-CBHq5T90.css";
-var APP_NAME = "Bastion";
+var APP_NAME = "SOVARA";
 var Route$6 = createRootRoute({
 	head: () => ({
 		meta: [

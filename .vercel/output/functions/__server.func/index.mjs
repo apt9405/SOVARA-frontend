@@ -12,7 +12,7 @@ var install_page_default = "<!DOCTYPE html>\n<html lang=\"en\" class=\"device-de
 //#endregion
 //#region \0virtual:grok-og-identity
 var grokOgIdentity = { "site": {
-	"title": "Bastion",
+	"title": "SOVARA",
 	"type": "website",
 	"card": "custom",
 	"description": "Sovereign on-premise agentic AI workbench for confidential industrial work. Open-weight models, local tools, zero egress.",

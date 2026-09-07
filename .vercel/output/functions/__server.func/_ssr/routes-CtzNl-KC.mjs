@@ -11,7 +11,7 @@ function MiniBar({ right = "Sealed" }) {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Mark, { className: "size-3.5" }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 				className: "text-xs font-medium",
-				children: "Bastion"
+				children: "SOVARA"
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 				className: "ml-auto flex items-center gap-1 font-mono text-xs text-ok",
@@ -356,7 +356,7 @@ function LandingPage() {
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg",
-							children: "Refineries, PSUs, defence production, secretariat notes. Bastion runs the agent on your GPU — scanned drawings, SOPs, and code included — and never opens a socket past the plant network."
+							children: "Refineries, PSUs, defence production, secretariat notes. SOVARA runs the agent on your GPU — scanned drawings, SOPs, and code included — and never opens a socket past the plant network."
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "mt-8 flex flex-col gap-3 sm:flex-row",
@@ -481,7 +481,7 @@ function LandingPage() {
 				className: "border-t border-border py-8",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mx-auto flex max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Bastion · prototype for on-prem GPU servers. No cloud inference." }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "SOVARA · prototype for on-prem GPU servers. No cloud inference." }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "font-mono text-xs uppercase tracking-widest",
 						children: "Air gap as a product, not a slogan."
 					})]

@@ -150,7 +150,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card xl:flex">
           <div className="border-b border-border px-4 py-3">
-            <p className="font-mono text-xs uppercase tracking-widest text-faint">Scenarios</p>
+            
           </div>
           <nav className="flex flex-1 flex-col gap-1 p-2">
             {SCENARIOS.map((s) => (

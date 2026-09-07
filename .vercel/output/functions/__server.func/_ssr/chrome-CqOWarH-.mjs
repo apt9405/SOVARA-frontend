@@ -127,14 +127,6 @@ function useActivePath() {
 	return useRouterState({ select: (s) => s.location.pathname });
 }
 function ClassTape() {
-	const items = [
-		"Internal",
-		"Western Refinery Complex",
-		"Air gap sealed",
-		"10.12.0.0/16 only",
-		"Egress denied",
-		"Open-weight · on-prem"
-	];
 	const line = [...items, ...items];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "relative flex h-8 items-center overflow-hidden border-b border-border bg-elevated",
@@ -162,7 +154,7 @@ function Header() {
 				className: "flex items-center gap-2.5 pr-2",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Mark, { className: "size-6" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 					className: "font-display text-sm font-semibold tracking-wide",
-					children: "Bastion"
+					children: "SOVARA"
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
