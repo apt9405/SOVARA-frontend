@@ -5,18 +5,15 @@ import {
   FileStack,
   Menu,
   Radio,
-  Shield,
   Terminal,
   X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mark } from "@/components/mark";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/", label: "Prototypes", icon: Shield },
   { to: "/workbench", label: "Workbench", icon: Terminal },
   { to: "/fleet", label: "Fleet", icon: Cpu },
   { to: "/vault", label: "Vault", icon: BookOpen },

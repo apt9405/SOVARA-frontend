@@ -4,12 +4,17 @@ import {
   ChevronRight,
   FileSpreadsheet,
   FileText,
+  FolderKanban,
   LoaderCircle,
+  MessageSquareText,
   Paperclip,
   Play,
+  Plus,
   Presentation,
   Send,
   Terminal,
+  UserRound,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Shell } from "@/components/chrome";
@@ -32,6 +37,29 @@ import { cn } from "@/lib/utils";
 type Msg = { id: string; role: "user" | "assistant"; text: string };
 type ToolRow = { id: string; name: string; detail: string; status: "run" | "ok" };
 type ArtifactId = (typeof DELIVERABLES)[number]["id"];
+type AttachmentItem = {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+};
+type ChatItem = {
+  id: string;
+  title: string;
+  preview: string;
+  status: "open" | "closed";
+  messages: Msg[];
+  plan: string[];
+  planDone: boolean;
+  route: { model: ModelId; reason: string } | null;
+  tools: ToolRow[];
+  artifacts: ArtifactId[];
+  busy: boolean;
+  draft: string;
+  attachments: AttachmentItem[];
+  activeDemo?: ScenarioId;
+  runKey: number;
+};
 
 const ARTIFACT_ICON = {
   note: FileText,
@@ -39,6 +67,81 @@ const ARTIFACT_ICON = {
   slides: Presentation,
   code: Terminal,
 } as const;
+
+function createChat(seed: Partial<ChatItem> & Pick<ChatItem, "id" | "title" | "preview">): ChatItem {
+  return {
+    status: "open",
+    messages: [],
+    plan: [],
+    planDone: false,
+    route: null,
+    tools: [],
+    artifacts: [],
+    busy: false,
+    draft: "",
+    attachments: [],
+    runKey: 0,
+    ...seed,
+  };
+}
+
+const INITIAL_CHATS: ChatItem[] = [
+  createChat({
+    id: "chat-1",
+    title: "Inspection workflow",
+    preview: "Scan review, routing, and punch list.",
+    messages: [
+      { id: "m-1", role: "user", text: "Review the last inspection scan and flag issues." },
+      {
+        id: "m-2",
+        role: "assistant",
+        text: "I routed it through vision, marked the anomalies, and drafted a clean punch list.",
+      },
+    ],
+    plan: ["Inspect scan", "Route to vision model", "Draft punch list"],
+    planDone: true,
+    route: { model: MODELS[0].id, reason: "Best fit for image-based review and markup." },
+    tools: [{ id: "t-1", name: "scan-parser", detail: "Loaded inspection pages and notes.", status: "ok" }],
+  }),
+  createChat({
+    id: "chat-2",
+    title: "Coding sandbox",
+    preview: "Python task with local execution notes.",
+    status: "closed",
+    messages: [
+      { id: "m-3", role: "user", text: "Run the sandbox routine for the heat balance check." },
+      { id: "m-4", role: "assistant", text: "Completed locally and prepared the summary output." },
+    ],
+    plan: ["Parse code request", "Run local checks", "Summarize output"],
+    planDone: true,
+    route: { model: MODELS[1].id, reason: "Code and calculation requests map to the coder model." },
+    tools: [{ id: "t-2", name: "python-runner", detail: "Executed local script and captured output.", status: "ok" }],
+  }),
+  createChat({
+    id: "chat-3",
+    title: "PID cleanup",
+    preview: "P&ID markup and isolation validation.",
+    messages: [
+      { id: "m-5", role: "user", text: "Check the P&ID tags and isolation boundaries." },
+      { id: "m-6", role: "assistant", text: "Marked the isolation path and verified the tag sequence." },
+    ],
+    plan: ["Review P&ID", "Trace isolation path", "Confirm boundaries"],
+    planDone: true,
+    route: { model: MODELS[0].id, reason: "Drawing interpretation is best handled by the vision route." },
+    tools: [{ id: "t-3", name: "pid-tracer", detail: "Mapped valves and highlighted the isolation chain.", status: "ok" }],
+  }),
+];
+
+const USER_PROFILE = {
+  name: "Aarav Mehta",
+  role: "Operations lead",
+  org: "SOVARA Industrial Systems",
+};
+
+const EMPTY_MESSAGES: Msg[] = [];
+const EMPTY_PLAN: string[] = [];
+const EMPTY_TOOLS: ToolRow[] = [];
+const EMPTY_ARTIFACTS: ArtifactId[] = [];
 
 function uid() {
   return Math.random().toString(36).slice(2, 9);
@@ -49,58 +152,110 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     ? (demo as ScenarioId)
     : undefined;
 
-  const [runKey, setRunKey] = useState(0);
-  const [activeDemo, setActiveDemo] = useState<ScenarioId | undefined>(initial);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [plan, setPlan] = useState<string[]>([]);
-  const [planDone, setPlanDone] = useState(false);
-  const [route, setRoute] = useState<{ model: ModelId; reason: string } | null>(null);
-  const [tools, setTools] = useState<ToolRow[]>([]);
-  const [artifacts, setArtifacts] = useState<ArtifactId[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [draft, setDraft] = useState("");
+  const [chats, setChats] = useState<ChatItem[]>(() => [
+    ...INITIAL_CHATS,
+    createChat({
+      id: "chat-current",
+      title: "Current chat",
+      preview: "Start a new conversation.",
+      activeDemo: initial,
+    }),
+  ]);
+  const [activeChatId, setActiveChatId] = useState("chat-current");
   const [mobilePane, setMobilePane] = useState<"chat" | "context">("chat");
   const endRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const activeChat = useMemo(
+    () => chats.find((chat) => chat.id === activeChatId) ?? chats[0],
+    [activeChatId, chats],
+  );
+
+  const messages = activeChat?.messages ?? EMPTY_MESSAGES;
+  const plan = activeChat?.plan ?? EMPTY_PLAN;
+  const planDone = activeChat?.planDone ?? false;
+  const route = activeChat?.route ?? null;
+  const tools = activeChat?.tools ?? EMPTY_TOOLS;
+  const artifacts = activeChat?.artifacts ?? EMPTY_ARTIFACTS;
+  const busy = activeChat?.busy ?? false;
+  const draft = activeChat?.draft ?? "";
+  const activeDemo = activeChat?.activeDemo;
+  const runKey = activeChat?.runKey ?? 0;
 
   useEffect(() => {
     if (!activeDemo) return;
     const scenario = SCENARIOS.find((s) => s.id === activeDemo);
     if (!scenario) return;
 
-    setMessages([]);
-    setPlan([]);
-    setPlanDone(false);
-    setRoute(null);
-    setTools([]);
-    setArtifacts([]);
-    setBusy(true);
-    setMobilePane("chat");
-
     const timers: number[] = [];
     const apply = (ev: ScenarioEvent) => {
       if (ev.kind === "user") {
-        setMessages((m) => [...m, { id: uid(), role: "user", text: ev.text }]);
+        setChats((current) =>
+          current.map((chat) =>
+            chat.id === activeChatId
+              ? { ...chat, messages: [...chat.messages, { id: uid(), role: "user", text: ev.text }] }
+              : chat,
+          ),
+        );
       } else if (ev.kind === "assistant") {
-        setMessages((m) => [...m, { id: uid(), role: "assistant", text: ev.text }]);
+        setChats((current) =>
+          current.map((chat) =>
+            chat.id === activeChatId
+              ? {
+                  ...chat,
+                  messages: [...chat.messages, { id: uid(), role: "assistant", text: ev.text }],
+                }
+              : chat,
+          ),
+        );
       } else if (ev.kind === "route") {
-        setRoute({ model: ev.model, reason: ev.reason });
+        setChats((current) =>
+          current.map((chat) =>
+            chat.id === activeChatId ? { ...chat, route: { model: ev.model, reason: ev.reason } } : chat,
+          ),
+        );
       } else if (ev.kind === "plan") {
-        setPlan(ev.items);
+        setChats((current) =>
+          current.map((chat) => (chat.id === activeChatId ? { ...chat, plan: ev.items } : chat)),
+        );
       } else if (ev.kind === "tool") {
-        setTools((rows) => {
-          const existing = rows.find((r) => r.name === ev.name);
-          if (existing) {
-            return rows.map((r) =>
-              r.name === ev.name ? { ...r, detail: ev.detail, status: ev.status } : r,
-            );
-          }
-          return [...rows, { id: uid(), name: ev.name, detail: ev.detail, status: ev.status }];
-        });
+        setChats((current) =>
+          current.map((chat) => {
+            if (chat.id !== activeChatId) return chat;
+            const existing = chat.tools.find((row) => row.name === ev.name);
+            if (existing) {
+              return {
+                ...chat,
+                tools: chat.tools.map((row) =>
+                  row.name === ev.name ? { ...row, detail: ev.detail, status: ev.status } : row,
+                ),
+              };
+            }
+            return {
+              ...chat,
+              tools: [...chat.tools, { id: uid(), name: ev.name, detail: ev.detail, status: ev.status }],
+            };
+          }),
+        );
       } else if (ev.kind === "artifact") {
-        setArtifacts((a) => (a.includes(ev.id as ArtifactId) ? a : [...a, ev.id as ArtifactId]));
+        setChats((current) =>
+          current.map((chat) =>
+            chat.id === activeChatId
+              ? {
+                  ...chat,
+                  artifacts: chat.artifacts.includes(ev.id as ArtifactId)
+                    ? chat.artifacts
+                    : [...chat.artifacts, ev.id as ArtifactId],
+                }
+              : chat,
+          ),
+        );
       } else if (ev.kind === "done") {
-        setPlanDone(true);
-        setBusy(false);
+        setChats((current) =>
+          current.map((chat) =>
+            chat.id === activeChatId ? { ...chat, planDone: true, busy: false, activeDemo: undefined } : chat,
+          ),
+        );
       }
     };
 
@@ -109,13 +264,13 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     }
 
     return () => {
-      timers.forEach((t) => window.clearTimeout(t));
+      timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [activeDemo, runKey]);
+  }, [activeChatId, activeDemo, runKey]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, tools]);
+  }, [messages, tools, activeChatId]);
 
   const preview = useMemo(() => {
     if (activeDemo === "pid") return "pid";
@@ -124,14 +279,97 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     return null;
   }, [activeDemo]);
 
-  function start(id: ScenarioId) {
-    setActiveDemo(id);
-    setRunKey((k) => k + 1);
+  function start(id: ScenarioId, options?: { keepMessages?: boolean }) {
+    setChats((current) =>
+      current.map((chat) => {
+        if (chat.id !== activeChatId) return chat;
+        return {
+          ...chat,
+          activeDemo: id,
+          runKey: chat.runKey + 1,
+          busy: true,
+          plan: [],
+          planDone: false,
+          route: null,
+          tools: [],
+          artifacts: [],
+          draft: "",
+          attachments: [],
+          messages: options?.keepMessages ? chat.messages : [],
+        };
+      }),
+    );
+  }
+
+  function createNewChat() {
+    const id = `chat-${uid()}`;
+    setChats((current) => [
+      createChat({
+        id,
+        title: "New chat",
+        preview: "Fresh conversation.",
+      }),
+      ...current,
+    ]);
+    setActiveChatId(id);
+    setMobilePane("chat");
+  }
+
+  function activateChat(chatId: string) {
+    setActiveChatId(chatId);
+    setMobilePane("chat");
+  }
+
+  function closeChat(chatId: string) {
+    setChats((current) =>
+      current.map((chat) =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              status: "closed",
+            }
+          : chat,
+      ),
+    );
+  }
+
+  function openChat(chatId: string) {
+    setChats((current) =>
+      current.map((chat) =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              status: "open",
+            }
+          : chat,
+      ),
+    );
+    setActiveChatId(chatId);
+    setMobilePane("chat");
+  }
+
+  function handleAttachments(files: FileList | null) {
+    if (!files?.length) return;
+    const nextAttachments = Array.from(files).map((file) => ({
+      id: uid(),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    }));
+    setChats((current) =>
+      current.map((chat) =>
+        chat.id === activeChatId
+          ? { ...chat, attachments: [...chat.attachments, ...nextAttachments] }
+          : chat,
+      ),
+    );
   }
 
   function onSend() {
     const text = draft.trim();
-    if (!text || busy) return;
+    if (!text && activeChat.attachments.length === 0) return;
+    if (busy) return;
+
     const lower = text.toLowerCase();
     if (lower.includes("p-101") || lower.includes("p&id") || lower.includes("isolat")) {
       start("pid");
@@ -140,46 +378,206 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     } else {
       start("inspection");
     }
+
+    setChats((current) =>
+      current.map((chat) =>
+        chat.id === activeChatId
+          ? {
+              ...chat,
+              draft: "",
+              attachments: [],
+            }
+          : chat,
+      ),
+    );
     setDraft("");
   }
 
+  function updateDraft(value: string) {
+    setChats((current) =>
+      current.map((chat) => (chat.id === activeChatId ? { ...chat, draft: value } : chat)),
+    );
+    setDraft(value);
+  }
+
   const model = route ? modelById(route.model) : MODELS[2];
+  const openChats = chats.filter((chat) => chat.status === "open");
+  const closedChats = chats.filter((chat) => chat.status === "closed");
 
   return (
     <Shell mode="app">
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card xl:flex">
-          <div className="border-b border-border px-4 py-3">
-            
+          <div className="border-b border-border p-3">
+            <Button type="button" className="h-11 w-full justify-start gap-2 rounded-md" onClick={createNewChat}>
+              <Plus className="size-4" />
+              New chat
+            </Button>
           </div>
-          <nav className="flex flex-1 flex-col gap-1 p-2">
-            {SCENARIOS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => start(s.id)}
-                className={cn(
-                  "rounded-md px-3 py-3 text-left transition-colors duration-150",
-                  activeDemo === s.id ? "bg-secondary" : "hover:bg-secondary/60",
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <section className="border-b border-border px-3 py-3">
+              <div className="flex items-center gap-2 px-1">
+                <MessageSquareText className="size-3.5 text-primary" />
+                <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Previous chats</p>
+              </div>
+              <div className="mt-2 space-y-1">
+                {openChats.length > 0 ? (
+                  openChats.map((chat) => {
+                    const active = chat.id === activeChatId;
+                    return (
+                      <div
+                        key={chat.id}
+                        className={cn(
+                          "flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150",
+                          active ? "bg-secondary" : "hover:bg-secondary/60",
+                        )}
+                      >
+                        <button type="button" className="min-w-0 flex-1 text-left" onClick={() => activateChat(chat.id)}>
+                          <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
+                          <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
+                            {chat.preview}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Close ${chat.title}`}
+                          className="mt-0.5 rounded-md p-1 text-faint transition-colors hover:bg-background hover:text-foreground"
+                          onClick={() => closeChat(chat.id)}
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="px-1 text-[12px] text-muted-foreground">No open chats yet.</p>
                 )}
-              >
-                <span className="block text-sm font-medium">{s.title}</span>
-                <span className="mt-0.5 block font-mono text-xs uppercase tracking-wider text-faint">
-                  {s.taskType}
-                </span>
-              </button>
-            ))}
-          </nav>
-          <div className="border-t border-border p-3">
-            <p className="font-mono text-xs uppercase tracking-widest text-faint">Loaded weights</p>
-            <ul className="mt-2 space-y-1">
-              {MODELS.filter((m) => m.loaded).map((m) => (
-                <li key={m.id} className="flex items-center justify-between text-xs">
-                  <span>{m.name}</span>
-                  <span className="size-1.5 rounded-full bg-ok" />
-                </li>
+              </div>
+            </section>
+
+            {closedChats.length > 0 ? (
+              <section className="border-b border-border px-3 py-3">
+                <div className="flex items-center gap-2 px-1">
+                  <MessageSquareText className="size-3.5 text-primary" />
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Closed chats</p>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {closedChats.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className="flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150 hover:bg-secondary/60"
+                    >
+                      <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openChat(chat.id)}>
+                        <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
+                        <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
+                          {chat.preview}
+                        </span>
+                      </button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="muted"
+                        className="h-7 px-2 text-[11px]"
+                        onClick={() => openChat(chat.id)}
+                      >
+                        Open
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <nav className="flex flex-col gap-1 p-2">
+              {SCENARIOS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => start(s.id)}
+                  className={cn(
+                    "rounded-md px-3 py-3 text-left transition-colors duration-150",
+                    activeDemo === s.id ? "bg-secondary" : "hover:bg-secondary/60",
+                  )}
+                >
+                  <span className="block text-sm font-medium">{s.title}</span>
+                  <span className="mt-0.5 block font-mono text-xs uppercase tracking-wider text-faint">
+                    {s.taskType}
+                  </span>
+                </button>
               ))}
-            </ul>
+            </nav>
+
+            <section className="border-t border-border px-3 py-3">
+              <div className="flex items-center gap-2 px-1">
+                <FolderKanban className="size-4 text-primary" />
+                <p className="font-mono text-xs uppercase tracking-widest text-faint">Artifacts</p>
+              </div>
+              <div className="mt-3 space-y-2">
+                {artifacts.length > 0 ? (
+                  artifacts.map((id) => {
+                    const d = DELIVERABLES.find((x) => x.id === id);
+                    if (!d) return null;
+                    const Icon = ARTIFACT_ICON[d.kind];
+                    return (
+                      <Link
+                        key={id}
+                        to="/studio"
+                        className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
+                      >
+                        <Icon className="size-4 text-primary" />
+                        {d.name}
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <p className="px-1 text-sm text-muted-foreground">Artifacts will appear here.</p>
+                )}
+              </div>
+            </section>
+          </div>
+          <div className="group relative border-t border-border p-3">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/50 focus-visible:bg-secondary/50"
+            >
+              <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Loaded weights</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Hover</span>
+            </button>
+            <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 hidden group-hover:block group-focus-within:block">
+              <div className="rounded-xl border border-border bg-card/98 p-3 shadow-2xl shadow-black/40 backdrop-blur-md">
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-faint">Loaded weights</p>
+                <ul className="mt-2 space-y-1">
+                  {MODELS.filter((m) => m.loaded).map((m) => (
+                    <li key={m.id} className="flex items-center justify-between text-[11px]">
+                      <span>{m.name}</span>
+                      <span className="size-1.5 rounded-full bg-ok" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div className="group relative border-t border-border p-3">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/50 focus-visible:bg-secondary/50"
+            >
+              <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">{USER_PROFILE.name}</span>
+            </button>
+            <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 hidden group-hover:block group-focus-within:block">
+              <div className="rounded-xl border border-border bg-card/98 p-3 shadow-2xl shadow-black/40 backdrop-blur-md">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary">
+                    <UserRound className="size-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{USER_PROFILE.name}</p>
+                    <p className="text-xs text-muted-foreground">{USER_PROFILE.role}</p>
+                    <p className="mt-1 text-xs text-faint">{USER_PROFILE.org}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -230,21 +628,21 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                         <p className="font-mono text-xs uppercase tracking-widest text-ok">Router</p>
                         <p className="mt-1">
                           <span className="font-medium">{model.name}</span>
-                          <span className="text-muted-foreground"> — {route.reason}</span>
+                          <span className="text-muted-foreground"> - {route.reason}</span>
                         </p>
                       </div>
                     ) : null}
-                    {messages.map((m) => (
+                    {messages.map((message) => (
                       <div
-                        key={m.id}
+                        key={message.id}
                         className={cn(
                           "max-w-[92%] rounded-lg px-3.5 py-2.5 text-sm leading-relaxed break-words",
-                          m.role === "user"
+                          message.role === "user"
                             ? "self-end rounded-br-sm bg-secondary"
                             : "self-start rounded-bl-sm border border-border",
                         )}
                       >
-                        {m.text}
+                        {message.text}
                       </div>
                     ))}
                     {busy ? (
@@ -260,6 +658,19 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
 
               <div className="border-t border-border p-3 md:p-4">
                 <div className="mx-auto flex max-w-2xl flex-col gap-2">
+                  {activeChat.attachments.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {activeChat.attachments.map((attachment) => (
+                        <span
+                          key={attachment.id}
+                          className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-elevated px-3 py-1 text-xs text-muted-foreground"
+                        >
+                          <Paperclip className="size-3.5" />
+                          <span className="max-w-[12rem] truncate">{attachment.name}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
                     {SCENARIOS.map((s) => (
                       <Button key={s.id} type="button" size="sm" variant="muted" onClick={() => start(s.id)}>
@@ -269,25 +680,39 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                     ))}
                   </div>
                   <div className="flex items-end gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        handleAttachments(e.target.files);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="muted"
+                      aria-label="Attach file"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Plus />
+                    </Button>
                     <Textarea
                       value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
+                      onChange={(e) => updateDraft(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
                           onSend();
                         }
                       }}
-                      placeholder="Task the agent — scans, code, P&IDs, notes"
+                      placeholder="Task the agent - scans, code, P&IDs, notes"
                       className="min-h-12 resize-none"
                       rows={2}
                     />
-                    <Button
-                      size="icon"
-                      aria-label="Send"
-                      disabled={busy}
-                      onClick={onSend}
-                    >
+                    <Button size="icon" aria-label="Send" disabled={busy} onClick={onSend}>
                       <Send />
                     </Button>
                   </div>
