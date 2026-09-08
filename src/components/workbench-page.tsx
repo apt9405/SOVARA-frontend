@@ -16,6 +16,10 @@ import {
   Terminal,
   UserRound,
   MoreHorizontal,
+  Share2,
+  Pencil,
+  Trash2,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Shell } from "@/components/chrome";
@@ -370,6 +374,21 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     );
   }
 
+  function removeAttachment(attachmentId: string) {
+  setChats((current) =>
+    current.map((chat) =>
+      chat.id === activeChatId
+        ? {
+            ...chat,
+            attachments: chat.attachments.filter(
+              (attachment) => attachment.id !== attachmentId,
+            ),
+          }
+        : chat,
+    ),
+  );
+}
+
   function onSend() {
     const text = draft.trim();
     if (!text && activeChat.attachments.length === 0) return;
@@ -459,37 +478,41 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                         >
                           <MoreHorizontal className="size-4" />
                         </button>
-
+                         
+                         <span>
                         {chatMenuOpen === chat.id ? (
-  <div className="absolute right-2 top-10 z-50 w-32 rounded-md border border-border bg-card p-1 shadow-xl">
-    <button
-      type="button"
-      className="w-full rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
-      onClick={() => setChatMenuOpen(null)}
-    >
-      Share
-    </button>
+                        <div className="absolute right-2 top-10 z-50 w-32 rounded-md border border-border bg-card p-1 shadow-xl">
+                         <button
+                         type="button"
+                          className="flex w-full rounded px-2 py-1.5 gap-1 text-left text-xs hover:bg-secondary"
+                         onClick={() => setChatMenuOpen(null)}>
+                          <Share2 className="size-3.5 shrink-0" />
+                          <p>Share</p>
+                        </button>
+                         
+                        <button
+                        type="button"
+                        className="flex w-full rounded px-2 py-1.5 gap-1 text-left text-xs hover:bg-secondary"
+                        onClick={() => setChatMenuOpen(null)}
+                         >
+                         <Pencil className="size-3.5 shrink-0" />
+                         <span>Rename</span>
+                         </button>
 
-    <button
-      type="button"
-      className="w-full rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
-      onClick={() => setChatMenuOpen(null)}
-    >
-      Rename
-    </button>
-
-    <button
-      type="button"
-      className="w-full rounded px-2 py-1.5 text-left text-xs text-red-500 hover:bg-red-500/10"
-      onClick={() => {
-        closeChat(chat.id);
-        setChatMenuOpen(null);
-      }}
-    >
-      Delete
-    </button>
-  </div>
-) : null}
+                         <button
+                         type="button"
+                        className="flex w-full rounded px-2 py-1.5 gap-1 text-left text-xs text-red-500 hover:bg-red-500/10"
+                        onClick={() => {
+                        closeChat(chat.id);
+                        setChatMenuOpen(null);
+                        }}
+                       >
+                       <Trash2 className="size-3.5 shrink-0" />
+                       <span>Delete</span>
+                      </button>
+                       </div>
+                      ) : null}
+                      </span>
                       </div>
                     );
                   })
@@ -719,6 +742,14 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                         >
                           <Paperclip className="size-3.5" />
                           <span className="max-w-[12rem] truncate">{attachment.name}</span>
+                          <button
+                          type="button"
+                          aria-label={`Remove ${attachment.name}`}
+                          className="ml-1 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500"
+                          onClick={() => removeAttachment(attachment.id)}
+                          >
+                           <X className="size-3.5" />
+                           </button>
                         </span>
                       ))}
                     </div>
@@ -777,7 +808,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
              type="button"
              aria-expanded={reportExpanded}
              onClick={() => setReportExpanded((expanded) => !expanded)}
-             className="h-8 w-full justify-start rounded-md bg-transparent text-left text-white"
+             className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)]"
              >
               Report
              </Button>
