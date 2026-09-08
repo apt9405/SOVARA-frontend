@@ -11,6 +11,7 @@ import {
 import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mark } from "@/components/mark";
+import { SignedOut } from "@/lib/auth/gates";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -58,7 +59,18 @@ export function Header() {
         })}
       </nav>
       <div className="ml-auto flex items-center gap-2">
-        
+        {path === "/" ? (
+          <SignedOut>
+            <div className="hidden items-center gap-2 sm:flex">
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login">Log in</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link to="/signup">Sign up</Link>
+              </Button>
+            </div>
+          </SignedOut>
+        ) : null}
         <Button
           variant="ghost"
           size="icon"
@@ -90,6 +102,18 @@ export function Header() {
                 </Link>
               );
             })}
+            {path === "/" ? (
+              <SignedOut>
+                <div className="mt-2 grid gap-1 border-t border-border pt-2 sm:hidden">
+                  <Link to="/login" onClick={() => setOpen(false)} className="flex h-11 items-center rounded-md px-3 text-sm text-muted-foreground">
+                    Log in
+                  </Link>
+                  <Link to="/signup" onClick={() => setOpen(false)} className="flex h-11 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
+                    Sign up
+                  </Link>
+                </div>
+              </SignedOut>
+            ) : null}
           </nav>
         </div>
       ) : null}
