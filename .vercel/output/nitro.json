@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "date": "2026-09-08T10:18:35.057Z",
+=======
+  "date": "2026-09-08T07:28:52.908Z",
+>>>>>>> 4d69eeb10a2effce4ad3b2e11bd8ba093aee5ee2
   "preset": "vercel",
   "framework": {
     "name": "nitro",

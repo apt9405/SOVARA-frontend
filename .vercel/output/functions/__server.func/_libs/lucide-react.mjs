@@ -223,6 +223,7 @@ var Download = createLucideIcon("download", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+<<<<<<< HEAD
 var Ellipsis = createLucideIcon("ellipsis", [
 	["circle", {
 		cx: "12",
@@ -249,6 +250,8 @@ var Ellipsis = createLucideIcon("ellipsis", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+=======
+>>>>>>> 4d69eeb10a2effce4ad3b2e11bd8ba093aee5ee2
 var FileSpreadsheet = createLucideIcon("file-spreadsheet", [
 	["path", {
 		d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z",
@@ -438,6 +441,7 @@ var Paperclip = createLucideIcon("paperclip", [["path", {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+<<<<<<< HEAD
 var Pencil = createLucideIcon("pencil", [["path", {
 	d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
 	key: "1a8usu"
@@ -445,6 +449,22 @@ var Pencil = createLucideIcon("pencil", [["path", {
 	d: "m15 5 4 4",
 	key: "1mk7zo"
 }]]);
+=======
+var PencilLine = createLucideIcon("pencil-line", [
+	["path", {
+		d: "M12 20h9",
+		key: "t2du7b"
+	}],
+	["path", {
+		d: "M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z",
+		key: "1ykcvy"
+	}],
+	["path", {
+		d: "m15 5 3 3",
+		key: "1w25hb"
+	}]
+]);
+>>>>>>> 4d69eeb10a2effce4ad3b2e11bd8ba093aee5ee2
 /**
 * @license lucide-react v0.510.0 - ISC
 *
@@ -620,6 +640,7 @@ var Server = createLucideIcon("server", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+<<<<<<< HEAD
 var Share2 = createLucideIcon("share-2", [
 	["circle", {
 		cx: "18",
@@ -660,6 +681,8 @@ var Share2 = createLucideIcon("share-2", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+=======
+>>>>>>> 4d69eeb10a2effce4ad3b2e11bd8ba093aee5ee2
 var ShieldOff = createLucideIcon("shield-off", [
 	["path", {
 		d: "m2 2 20 20",
@@ -696,6 +719,7 @@ var Terminal = createLucideIcon("terminal", [["polyline", {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+<<<<<<< HEAD
 var Trash2 = createLucideIcon("trash-2", [
 	["path", {
 		d: "M3 6h18",
@@ -730,6 +754,8 @@ var Trash2 = createLucideIcon("trash-2", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+=======
+>>>>>>> 4d69eeb10a2effce4ad3b2e11bd8ba093aee5ee2
 var TriangleAlert = createLucideIcon("triangle-alert", [
 	["path", {
 		d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3",
@@ -773,4 +799,8 @@ var X = createLucideIcon("x", [["path", {
 	key: "d8bk6v"
 }]]);
 //#endregion
+<<<<<<< HEAD
 export { Check as A, FileText as C, Download as D, Ellipsis as E, ArrowRight as M, Cpu as O, FolderKanban as S, FileSpreadsheet as T, Paperclip as _, Terminal as a, Lock as b, Server as c, ScanLine as d, Radio as f, Pencil as g, Play as h, Trash2 as i, BookOpen as j, ChevronRight as k, Send as l, Plus as m, UserRound as n, ShieldOff as o, Presentation as p, TriangleAlert as r, Share2 as s, X as t, Search as u, MessageSquareText as v, FileStack as w, LoaderCircle as x, Menu as y };
+=======
+export { FileSpreadsheet as C, Check as D, ChevronRight as E, BookOpen as O, FileStack as S, Cpu as T, Menu as _, ShieldOff as a, FolderKanban as b, Search as c, Presentation as d, Plus as f, MessageSquareText as g, Paperclip as h, Terminal as i, ArrowRight as k, ScanLine as l, PencilLine as m, UserRound as n, Server as o, Play as p, TriangleAlert as r, Send as s, X as t, Radio as u, Lock as v, Download as w, FileText as x, LoaderCircle as y };
+>>>>>>> 4d69eeb10a2effce4ad3b2e11bd8ba093aee5ee2
