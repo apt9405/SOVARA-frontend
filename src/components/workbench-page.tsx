@@ -716,13 +716,13 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               ) : null}
             </section>
           </div>
-          <div className="group relative border-t border-border p-3">
+          {/* <div className="group relative border-t border-border p-3">
             <button
               type="button"
               className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/50 focus-visible:bg-secondary/50"
             >
               <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Loaded weights</span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Hover</span>
+              
             </button>
             <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 hidden group-hover:block group-focus-within:block">
               <div className="rounded-xl border border-border bg-card/98 p-3 shadow-2xl shadow-black/40 backdrop-blur-md">
@@ -737,7 +737,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 </ul>
               </div>
             </div>
-          </div>
+          </div> */}
           <div className="group relative border-t border-border p-3">
             <button
               type="button"
@@ -763,7 +763,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-2 border-b border-border px-3 py-2 md:px-4">
+          {/* <div className="flex items-center gap-2 border-b border-border px-3 py-2 md:px-4">
             <p className="text-sm font-medium">Agent</p>
             <Badge variant="ok" className="hidden sm:inline-flex">
               {model.name}
@@ -790,7 +790,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 Context
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex min-h-0 flex-1">
             <div
