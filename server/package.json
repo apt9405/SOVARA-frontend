@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "pnpm tsc",
-    "test:e2e": "pnpm tsc && node --test test/e2e/auth.e2e.test.mjs"
+    "test:e2e": "pnpm tsc && node --test test/unit/authorization.test.mjs test/e2e/auth.e2e.test.mjs"
   },
 
   "keywords": [],
