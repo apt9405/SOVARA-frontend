@@ -100,28 +100,6 @@ export function Header() {
 
 export function BottomNav() {
   const path = useActivePath();
-  const items = NAV.filter((n) => n.to !== "/");
-  return (
-    <nav className="grid h-16 shrink-0 grid-cols-5 border-t border-border bg-card md:hidden">
-      {items.map((item) => {
-        const active = isActive(path, item.to);
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 text-xs tracking-wide",
-              active ? "text-foreground" : "text-faint",
-            )}
-          >
-            <Icon className="size-4" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
 }
 
 export function Shell({
@@ -142,7 +120,6 @@ export function Shell({
       <div className={cn("flex min-h-0 flex-1 flex-col", mode === "app" && "overflow-hidden")}>
         {children}
       </div>
-      {mode === "app" ? <BottomNav /> : null}
     </div>
   );
 }
