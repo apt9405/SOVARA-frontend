@@ -14,7 +14,6 @@ import {
   Presentation,
   Send,
   Terminal,
-  UserRound,
   MoreHorizontal,
   Share2,
   Pencil,
@@ -30,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { WorkbenchReportMetrics } from "@/components/workbench-report-metrics";
+import { WorkbenchProfileMenu } from "@/components/workbench-profile-menu";
 import {
   type ModelId,
   type ScenarioEvent,
@@ -740,26 +740,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
             </div>
           </div> */}
           <div className="group relative border-t border-border p-3">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/50 focus-visible:bg-secondary/50"
-            >
-              <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">{USER_PROFILE.name}</span>
-            </button>
-            <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 hidden group-hover:block group-focus-within:block">
-              <div className="rounded-xl border border-border bg-card/98 p-3 shadow-2xl shadow-black/40 backdrop-blur-md">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary">
-                    <UserRound className="size-4 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{USER_PROFILE.name}</p>
-                    <p className="text-xs text-muted-foreground">{USER_PROFILE.role}</p>
-                    <p className="mt-1 text-xs text-faint">{USER_PROFILE.org}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <WorkbenchProfileMenu fallback={USER_PROFILE} />
           </div>
         </aside>
 
