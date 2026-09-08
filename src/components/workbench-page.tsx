@@ -15,7 +15,7 @@ import {
   Send,
   Terminal,
   UserRound,
-  X,
+  MoreHorizontal,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Shell } from "@/components/chrome";
@@ -165,7 +165,9 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   const [activeChatId, setActiveChatId] = useState("chat-current");
   const [mobilePane, setMobilePane] = useState<"chat" | "context">("chat");
   const [recentExpanded, setRecentExpanded] = useState(true);
+  const [artifactExpanded, setArtifactExpanded] = useState(true);
   const [reportExpanded, setReportExpanded] = useState(false); 
+  const [chatMenuOpen, setChatMenuOpen] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -410,9 +412,9 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   return (
     <Shell mode="app">
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card xl:flex">
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg- xl:flex">
           <div className="border-b border-border p-3">
-            <Button type="button"  className="h-8 w-fyll justify-start gap-1 rounded-md  bg-trans text-left text-white " onClick={createNewChat}>
+            <Button type="button"  className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)] " onClick={createNewChat}>
               <Plus className="size-5" />
               New chat
             </Button>
@@ -423,7 +425,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               type="button"
               aria-expanded={recentExpanded}
               onClick={() => setRecentExpanded((expanded) => !expanded)}
-              className="h-8 w-full justify-start gap-1 rounded-md  bg-trans text-left text-white " >
+              className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)] " >
                 <MessageSquareText className="size-3.5 text-primary" />
                 <p className="font-mono text-[11px] uppercase tracking-[0.24em] ">Recents</p>
               </Button>
@@ -437,7 +439,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                       <div
                         key={chat.id}
                         className={cn(
-                          "flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150",
+                          "relative flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150",
                           active ? "bg-secondary" : "hover:bg-secondary/60",
                         )}
                       >
@@ -451,10 +453,43 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                           type="button"
                           aria-label={`Close ${chat.title}`}
                           className="mt-0.5 rounded-md p-1 text-faint transition-colors hover:bg-background hover:text-foreground"
-                          onClick={() => closeChat(chat.id)}
+                          onClick={() => setChatMenuOpen((openChatId) =>
+                          openChatId === chat.id ? null : chat.id,)
+                          }
                         >
-                          <X className="size-3" />
+                          <MoreHorizontal className="size-4" />
                         </button>
+
+                        {chatMenuOpen === chat.id ? (
+  <div className="absolute right-2 top-10 z-50 w-32 rounded-md border border-border bg-card p-1 shadow-xl">
+    <button
+      type="button"
+      className="w-full rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+      onClick={() => setChatMenuOpen(null)}
+    >
+      Share
+    </button>
+
+    <button
+      type="button"
+      className="w-full rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+      onClick={() => setChatMenuOpen(null)}
+    >
+      Rename
+    </button>
+
+    <button
+      type="button"
+      className="w-full rounded px-2 py-1.5 text-left text-xs text-red-500 hover:bg-red-500/10"
+      onClick={() => {
+        closeChat(chat.id);
+        setChatMenuOpen(null);
+      }}
+    >
+      Delete
+    </button>
+  </div>
+) : null}
                       </div>
                     );
                   })
@@ -518,10 +553,16 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
             </nav> */}
 
             <section className="border-t border-border px-3 py-3">
-              <Button className="h-8 w-full justify-start gap-1 rounded-md  bg-trans text-left text-white">
+              <Button 
+              type="button"
+              aria-expanded={artifactExpanded}
+              onClick={() => setArtifactExpanded((expanded) => !expanded)}
+              className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
                 <FolderKanban className="size-4 text-primary" />
                 <p className="font-mono text-xs uppercase tracking-widest ">Artifacts</p>
               </Button>
+
+              {artifactExpanded ? (
               <div className="mt-3 space-y-2">
                 {artifacts.length > 0 ? (
                   artifacts.map((id) => {
@@ -543,6 +584,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                   <p className="px-1 text-sm text-muted-foreground">Artifacts will appear here.</p>
                 )}
               </div>
+              ) : null}
             </section>
           </div>
           <div className="group relative border-t border-border p-3">
