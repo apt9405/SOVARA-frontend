@@ -220,6 +220,7 @@ before(async () => {
       KEYCLOAK_CLIENT_SECRET: "test-client-secret",
       KEYCLOAK_REDIRECT_URI: `${applicationOrigin}/api/auth/callback/keycloak`,
       KEYCLOAK_POST_LOGOUT_REDIRECT_URI: `${frontendOrigin}/`,
+      ORGANIZATION_BOOTSTRAP_SUBJECT: "keycloak-user-001",
       SESSION_COOKIE_SECURE: "true",
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -280,6 +281,175 @@ describe("Keycloak authentication flow", () => {
     assert.equal(body.user.keycloakSubject, "keycloak-user-001");
     assert.equal(body.user.email, "rahul@example.test");
     assert.ok(body.csrfToken);
+
+    const rolesResponse = await fetch(`${applicationOrigin}/api/organization-roles`, {
+      headers: { cookie },
+    });
+    assert.equal(rolesResponse.status, 200);
+    const rolesBody = await rolesResponse.json();
+    assert.deepEqual(
+      rolesBody.roles.map((role) => role.code),
+      ["ORG_ADMIN", "DIVISION_MANAGER", "DEPARTMENT_MANAGER", "TEAM_LEAD", "EMPLOYEE"],
+    );
+    const teamLeadRole = rolesBody.roles.find((role) => role.code === "TEAM_LEAD");
+    assert.ok(teamLeadRole.permissions.includes("team.manage"));
+    assert.ok(!teamLeadRole.permissions.includes("organization.members.manage"));
+
+    const permissionsResponse = await fetch(`${applicationOrigin}/api/organization-permissions`, {
+      headers: { cookie },
+    });
+    assert.equal(permissionsResponse.status, 200);
+    const permissionsBody = await permissionsResponse.json();
+    assert.ok(permissionsBody.permissions.some((permission) => permission.code === "document.read"));
+    assert.ok(permissionsBody.permissions.some((permission) => permission.code === "organization.members.manage"));
+
+    const jsonHeaders = {
+      cookie,
+      "content-type": "application/json",
+      "x-csrf-token": body.csrfToken,
+    };
+    const createOrganization = await fetch(`${applicationOrigin}/api/organizations`, {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({ name: "ABC Refinery Ltd", code: "abc-ref", type: "REFINERY" }),
+    });
+    assert.equal(createOrganization.status, 201);
+    const organization = await createOrganization.json();
+    assert.equal(organization.code, "ABC-REF");
+
+    const createDivision = await fetch(
+      `${applicationOrigin}/api/organizations/${organization.id}/divisions`,
+      {
+        method: "POST",
+        headers: jsonHeaders,
+        body: JSON.stringify({ name: "Refinery Operations", code: "ops" }),
+      },
+    );
+    assert.equal(createDivision.status, 201);
+    const division = await createDivision.json();
+    assert.equal(division.organizationId, organization.id);
+
+    const createDepartment = await fetch(
+      `${applicationOrigin}/api/divisions/${division.id}/departments`,
+      {
+        method: "POST",
+        headers: jsonHeaders,
+        body: JSON.stringify({ name: "Maintenance", code: "maint" }),
+      },
+    );
+    assert.equal(createDepartment.status, 201);
+    const department = await createDepartment.json();
+    assert.equal(department.divisionId, division.id);
+
+    const createTeam = await fetch(
+      `${applicationOrigin}/api/departments/${department.id}/teams`,
+      {
+        method: "POST",
+        headers: jsonHeaders,
+        body: JSON.stringify({ name: "Mechanical Maintenance", code: "mech" }),
+      },
+    );
+    assert.equal(createTeam.status, 201);
+    const team = await createTeam.json();
+    assert.equal(team.departmentId, department.id);
+
+    const addMember = await fetch(
+      `${applicationOrigin}/api/organizations/${organization.id}/members`,
+      {
+        method: "POST",
+        headers: jsonHeaders,
+        body: JSON.stringify({
+          keycloakSubject: "keycloak-user-002",
+          email: "neha@example.test",
+          username: "neha",
+          displayName: "Neha Singh",
+          role: "TEAM_LEAD",
+        }),
+      },
+    );
+    assert.equal(addMember.status, 201);
+    const member = await addMember.json();
+    assert.equal(member.membership.organizationId, organization.id);
+    assert.equal(member.membership.role, "TEAM_LEAD");
+
+    const assignMember = await fetch(
+      `${applicationOrigin}/api/users/${member.user.id}/organization-assignment`,
+      {
+        method: "PATCH",
+        headers: jsonHeaders,
+        body: JSON.stringify({
+          organizationId: organization.id,
+          divisionId: division.id,
+          departmentId: department.id,
+          teamId: team.id,
+          managerUserId: body.user.keycloakSubject === "keycloak-user-001" ? member.user.id : null,
+        }),
+      },
+    );
+    assert.equal(assignMember.status, 200);
+    const assignment = await assignMember.json();
+    assert.equal(assignment.teamId, team.id);
+
+    const changeRole = await fetch(
+      `${applicationOrigin}/api/organizations/${organization.id}/members/${member.user.id}`,
+      {
+        method: "PATCH",
+        headers: jsonHeaders,
+        body: JSON.stringify({ role: "DEPARTMENT_MANAGER" }),
+      },
+    );
+    assert.equal(changeRole.status, 200);
+    const changedMember = await changeRole.json();
+    assert.equal(changedMember.membership.role, "DEPARTMENT_MANAGER");
+    const membersAfterRoleChange = await fetch(
+      `${applicationOrigin}/api/organizations/${organization.id}/members`,
+      { headers: { cookie } },
+    );
+    assert.equal(membersAfterRoleChange.status, 200);
+    const membersBody = await membersAfterRoleChange.json();
+    assert.ok(Array.isArray(membersBody), JSON.stringify(membersBody));
+    const changedMemberContext = membersBody.find(
+      (entry) => entry.user?.keycloakSubject === "keycloak-user-002",
+    );
+    assert.ok(changedMemberContext, "Updated member was not returned by the members endpoint");
+    assert.equal(changedMemberContext.role, "DEPARTMENT_MANAGER");
+    assert.equal(changedMemberContext.assignment.teamId, team.id);
+
+    const otherDepartmentResponse = await fetch(
+      `${applicationOrigin}/api/divisions/${division.id}/departments`,
+      {
+        method: "POST",
+        headers: jsonHeaders,
+        body: JSON.stringify({ name: "Safety", code: "safety" }),
+      },
+    );
+    assert.equal(otherDepartmentResponse.status, 201);
+    const otherDepartment = await otherDepartmentResponse.json();
+    const otherTeamResponse = await fetch(
+      `${applicationOrigin}/api/departments/${otherDepartment.id}/teams`,
+      {
+        method: "POST",
+        headers: jsonHeaders,
+        body: JSON.stringify({ name: "Safety Team", code: "safety-team" }),
+      },
+    );
+    assert.equal(otherTeamResponse.status, 201);
+    const otherTeam = await otherTeamResponse.json();
+
+    const inconsistentAssignment = await fetch(
+      `${applicationOrigin}/api/users/${member.user.id}/organization-assignment`,
+      {
+        method: "PATCH",
+        headers: jsonHeaders,
+        body: JSON.stringify({
+          organizationId: organization.id,
+          divisionId: division.id,
+          departmentId: department.id,
+          teamId: otherTeam.id,
+        }),
+      },
+    );
+    assert.equal(inconsistentAssignment.status, 409);
 
     const csrfFailure = await fetch(`${applicationOrigin}/api/auth/logout`, {
       method: "POST",
