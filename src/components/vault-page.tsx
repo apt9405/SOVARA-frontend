@@ -1,28 +1,108 @@
-import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Download, PencilLine, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Shell } from "@/components/chrome";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { VAULT, type VaultDoc } from "@/lib/data";
+import { downloadText } from "@/lib/download";
 import { cn } from "@/lib/utils";
 
 const KINDS = ["All", "SOP", "Standard", "Manual", "Drawing", "Template", "Mail"] as const;
+const DEFAULT_DESCRIPTION =
+  "Retrieval is dense + keyword over this corpus only. Embeddings live on 10.12.0.8. A query never constructs an HTTPS host outside the plant prefix.";
+
+type VaultDraft = {
+  title: string;
+  description: string;
+};
+
+function formatUploadedDate(value: string) {
+  const [year, month] = value.split("-").map((part) => Number.parseInt(part, 10));
+  if (!year || !month) return value;
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, month - 1, 1));
+}
 
 export function VaultPage() {
   const [q, setQ] = useState("");
   const [kind, setKind] = useState<(typeof KINDS)[number]>("All");
+  const [docs, setDocs] = useState<VaultDoc[]>(() => VAULT);
   const [open, setOpen] = useState<string>(VAULT[0]?.id ?? "");
+  const [editing, setEditing] = useState(false);
+  const [drafts, setDrafts] = useState<Record<string, VaultDraft>>({});
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftDescription, setDraftDescription] = useState(DEFAULT_DESCRIPTION);
 
   const rows = useMemo(() => {
-    return VAULT.filter((d) => {
+    return docs.filter((d) => {
       const hay = `${d.title} ${d.excerpt} ${d.kind}`.toLowerCase();
       const matchQ = q.trim() === "" || hay.includes(q.toLowerCase());
       const matchK = kind === "All" || d.kind === kind;
       return matchQ && matchK;
     });
-  }, [q, kind]);
+  }, [q, kind, docs]);
 
   const active: VaultDoc | undefined = rows.find((r) => r.id === open) ?? rows[0];
+  const saved = active ? drafts[active.id] : undefined;
+  const displayTitle = saved?.title ?? active?.title ?? "";
+  const displayDescription = saved?.description ?? DEFAULT_DESCRIPTION;
+  const displayFileName = active ? `${active.title.replace(/[^\w.-]+/g, "_")}.pdf` : "";
+
+  useEffect(() => {
+    if (!active) return;
+    const next = drafts[active.id];
+    setDraftTitle(next?.title ?? active.title);
+    setDraftDescription(next?.description ?? DEFAULT_DESCRIPTION);
+    setEditing(false);
+  }, [active?.id, drafts]);
+
+  const handleDownload = () => {
+    if (!active) return;
+    downloadText(
+      displayFileName,
+      `${displayTitle}\n\n${active.pages} pages · uploaded on ${formatUploadedDate(active.uploaded)}\n\n${displayDescription}\n`,
+      "text/plain",
+    );
+  };
+
+  const handleStartEdit = () => {
+    if (!active) return;
+    setDraftTitle(saved?.title ?? active.title);
+    setDraftDescription(saved?.description ?? DEFAULT_DESCRIPTION);
+    setEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    if (!active) return;
+    setDraftTitle(saved?.title ?? active.title);
+    setDraftDescription(saved?.description ?? DEFAULT_DESCRIPTION);
+    setEditing(false);
+  };
+
+  const handleSaveEdit = () => {
+    if (!active) return;
+    setDrafts((current) => ({
+      ...current,
+      [active.id]: {
+        title: draftTitle.trim() || active.title,
+        description: draftDescription.trim() || DEFAULT_DESCRIPTION,
+      },
+    }));
+    setEditing(false);
+  };
+
+  const handleDelete = () => {
+    if (!active) return;
+    const nextDocs = docs.filter((doc) => doc.id !== active.id);
+    setDocs(nextDocs);
+    setOpen(nextDocs[0]?.id ?? "");
+    setEditing(false);
+  };
 
   return (
     <Shell mode="app">
@@ -73,7 +153,7 @@ export function VaultPage() {
                     <Badge variant={d.class === "Restricted" ? "warn" : "default"}>{d.class}</Badge>
                   </span>
                   <span className="mt-1 block font-mono text-xs text-faint">
-                    {d.kind} · {d.pages} pp · {d.updated}
+                    {d.pages} pages · uploaded on {formatUploadedDate(d.uploaded)}
                   </span>
                 </button>
               </li>
@@ -86,16 +166,85 @@ export function VaultPage() {
         <article className="hidden min-h-0 flex-1 overflow-y-auto p-6 md:block">
           {active ? (
             <div className="mx-auto max-w-xl">
-              <Badge variant={active.class === "Restricted" ? "warn" : "ok"}>{active.class}</Badge>
-              <h2 className="mt-3 font-display text-2xl font-medium tracking-tight">{active.title}</h2>
-              <p className="mt-1 font-mono text-xs uppercase tracking-widest text-faint">
-                {active.kind} · {active.pages} pages · indexed {active.updated}
-              </p>
-              <p className="mt-6 text-sm leading-relaxed text-muted-foreground">{active.excerpt}</p>
-              <p className="mt-6 rounded-lg border border-border bg-elevated p-4 text-sm leading-relaxed">
-                Retrieval is dense + keyword over this corpus only. Embeddings live on 10.12.0.8.
-                A query never constructs an HTTPS host outside the plant prefix.
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <Badge variant={active.class === "Restricted" ? "warn" : "ok"}>{active.class}</Badge>
+                {editing ? (
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" type="button" onClick={handleCancelEdit}>
+                      <X className="size-4" />
+                      Cancel
+                    </Button>
+                    <Button variant="outline" size="sm" type="button" onClick={handleSaveEdit}>
+                      Save
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm" className="shrink-0" type="button" onClick={handleStartEdit}>
+                    <PencilLine className="size-4" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {editing ? (
+                  <Input
+                    value={draftTitle}
+                    onChange={(e) => setDraftTitle(e.target.value)}
+                    className="h-11 font-display text-2xl font-medium tracking-tight"
+                    aria-label="Edit title"
+                  />
+                ) : (
+                  <h2 className="font-display text-2xl font-medium tracking-tight">{displayTitle}</h2>
+                )}
+                <p className="font-mono text-xs uppercase tracking-widest text-faint">
+                  {active.pages} pages · uploaded on {formatUploadedDate(active.uploaded)}
+                </p>
+              </div>
+
+              <div className="mt-6 rounded-xl border border-border bg-background/70 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{displayFileName}</p>
+                    <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
+                      Local vault file
+                    </p>
+                  </div>
+                  <Button variant="muted" size="sm" className="shrink-0" type="button" onClick={handleDownload}>
+                    <Download className="size-4" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-2">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">File description</p>
+                {editing ? (
+                  <Textarea
+                    value={draftDescription}
+                    onChange={(e) => setDraftDescription(e.target.value)}
+                    className="min-h-32"
+                    aria-label="Edit file description"
+                  />
+                ) : (
+                  <p className="rounded-lg border border-border bg-elevated p-4 text-sm leading-relaxed text-foreground/90">
+                    {displayDescription}
+                  </p>
+                )}
+              </div>
+
+              {editing ? (
+                <div className="mt-4">
+                  <Button
+                    size="sm"
+                    type="button"
+                    onClick={handleDelete}
+                    className="border border-border bg-destructive/10 text-crit hover:bg-destructive/15"
+                  >
+                    Delete file
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </article>
