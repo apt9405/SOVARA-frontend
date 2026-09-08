@@ -29,6 +29,7 @@ import { PidDrawing, ScanDocument } from "@/components/artifacts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { WorkbenchReportMetrics } from "@/components/workbench-report-metrics";
 import {
   type ModelId,
   type ScenarioEvent,
@@ -1028,6 +1029,8 @@ function ContextRail({
 }) {
   return (
     <div className="flex flex-col gap-5 p-4">
+      <WorkbenchReportMetrics tools={tools} />
+
       <section>
         <p className="font-mono text-xs uppercase tracking-widest text-faint">Plan</p>
         {plan.length === 0 ? (
