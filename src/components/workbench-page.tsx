@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Shell } from "@/components/chrome";
 import { Crop } from "@/components/crop";
 import { PidDrawing, ScanDocument } from "@/components/artifacts";
@@ -47,6 +48,14 @@ type AttachmentItem = {
   name: string;
   size: number;
   type: string;
+};
+type ChatMenuPosition = {
+  top: number;
+  left: number;
+};
+type ChatEditState = {
+  id: string;
+  title: string;
 };
 type ChatItem = {
   id: string;
@@ -152,6 +161,24 @@ function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
+function buildChatShareText(chat: ChatItem) {
+  const lines = [
+    `Chat: ${chat.title}`,
+    `Status: ${chat.status}`,
+    `Preview: ${chat.preview}`,
+  ];
+
+  if (chat.messages.length > 0) {
+    lines.push("");
+    lines.push("Messages:");
+    for (const message of chat.messages) {
+      lines.push(`${message.role === "user" ? "User" : "Assistant"}: ${message.text}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
 export function WorkbenchPage({ demo }: { demo?: string }) {
   const initial = (["inspection", "coding", "pid"] as const).includes(demo as ScenarioId)
     ? (demo as ScenarioId)
@@ -172,8 +199,11 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   const [artifactExpanded, setArtifactExpanded] = useState(true);
   const [reportExpanded, setReportExpanded] = useState(false); 
   const [chatMenuOpen, setChatMenuOpen] = useState<string | null>(null);
+  const [chatMenuPosition, setChatMenuPosition] = useState<ChatMenuPosition | null>(null);
+  const [chatEdit, setChatEdit] = useState<ChatEditState | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const activeChat = useMemo(
     () => chats.find((chat) => chat.id === activeChatId) ?? chats[0],
@@ -281,6 +311,16 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, tools, activeChatId]);
 
+  useEffect(() => {
+    if (!chatEdit) return;
+    const frame = window.requestAnimationFrame(() => {
+      editInputRef.current?.focus();
+      editInputRef.current?.select();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [chatEdit?.id]);
+
   const preview = useMemo(() => {
     if (activeDemo === "pid") return "pid";
     if (activeDemo === "inspection") return "scan";
@@ -327,6 +367,76 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   function activateChat(chatId: string) {
     setActiveChatId(chatId);
     setMobilePane("chat");
+  }
+
+  function toggleChatMenu(chatId: string, target: HTMLButtonElement) {
+    if (chatMenuOpen === chatId) {
+      setChatMenuOpen(null);
+      setChatMenuPosition(null);
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    const width = 160;
+    const gap = 12;
+    const top = Math.max(12, rect.top - 8);
+    const left = Math.min(rect.right + gap, window.innerWidth - width - 12);
+
+    setChatMenuOpen(chatId);
+    setChatMenuPosition({ top, left });
+  }
+
+  async function shareChat(chatId: string) {
+    const chat = chats.find((item) => item.id === chatId);
+    if (!chat) return;
+
+    const text = buildChatShareText(chat);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      window.alert("Copy failed in this browser.");
+      return;
+    }
+
+    setChatMenuOpen(null);
+    setChatMenuPosition(null);
+  }
+
+  function beginRenameChat(chatId: string) {
+    const chat = chats.find((item) => item.id === chatId);
+    if (!chat) return;
+
+    setChatEdit({ id: chatId, title: chat.title });
+    setChatMenuOpen(null);
+    setChatMenuPosition(null);
+  }
+
+  function commitRenameChat() {
+    if (!chatEdit) return;
+
+    const nextTitle = chatEdit.title.trim();
+    const current = chats.find((item) => item.id === chatEdit.id);
+    const finalTitle = nextTitle || current?.title;
+    if (!current || !finalTitle || finalTitle === current.title) {
+      setChatEdit(null);
+      return;
+    }
+
+    setChats((items) =>
+      items.map((item) =>
+        item.id === chatEdit.id
+          ? {
+              ...item,
+              title: finalTitle,
+            }
+          : item,
+      ),
+    );
+    setChatEdit(null);
+  }
+
+  function cancelRenameChat() {
+    setChatEdit(null);
   }
 
   function closeChat(chatId: string) {
@@ -454,6 +564,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 {openChats.length > 0 ? (
                   openChats.map((chat) => {
                     const active = chat.id === activeChatId;
+                    const editing = chatEdit?.id === chat.id;
                     return (
                       <div
                         key={chat.id}
@@ -462,57 +573,54 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                           active ? "bg-secondary" : "hover:bg-secondary/60",
                         )}
                       >
-                        <button type="button" className="min-w-0 flex-1 text-left" onClick={() => activateChat(chat.id)}>
-                          <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
-                          <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
-                            {chat.preview}
-                          </span>
-                        </button>
+                        {editing ? (
+                          <div className="min-w-0 flex-1">
+                            <input
+                              ref={editInputRef}
+                              value={chatEdit?.title ?? ""}
+                              onChange={(event) =>
+                                setChatEdit((current) =>
+                                  current && current.id === chat.id
+                                    ? { ...current, title: event.target.value }
+                                    : current,
+                                )
+                              }
+                              onBlur={commitRenameChat}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.preventDefault();
+                                  commitRenameChat();
+                                } else if (event.key === "Escape") {
+                                  event.preventDefault();
+                                  cancelRenameChat();
+                                }
+                              }}
+                              className={cn(
+                                "block w-full min-w-0 rounded-md border border-border bg-background/90 px-2 py-1",
+                                "text-[13px] font-medium leading-tight text-foreground shadow-inner outline-none ring-0",
+                                "placeholder:text-muted-foreground",
+                              )}
+                            />
+                            <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
+                              {chat.preview}
+                            </span>
+                          </div>
+                        ) : (
+                          <button type="button" className="min-w-0 flex-1 text-left" onClick={() => activateChat(chat.id)}>
+                            <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
+                            <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
+                              {chat.preview}
+                            </span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           aria-label={`Close ${chat.title}`}
                           className="mt-0.5 rounded-md p-1 text-faint transition-colors hover:bg-background hover:text-foreground"
-                          onClick={() => setChatMenuOpen((openChatId) =>
-                          openChatId === chat.id ? null : chat.id,)
-                          }
+                          onClick={(event) => toggleChatMenu(chat.id, event.currentTarget)}
                         >
                           <MoreHorizontal className="size-4" />
                         </button>
-                         
-                         <span>
-                        {chatMenuOpen === chat.id ? (
-                        <div className="absolute right-2 top-10 z-50 w-32 rounded-md border border-border bg-card p-1 shadow-xl">
-                         <button
-                         type="button"
-                          className="flex w-full rounded px-2 py-1.5 gap-1 text-left text-xs hover:bg-secondary"
-                         onClick={() => setChatMenuOpen(null)}>
-                          <Share2 className="size-3.5 shrink-0" />
-                          <p>Share</p>
-                        </button>
-                         
-                        <button
-                        type="button"
-                        className="flex w-full rounded px-2 py-1.5 gap-1 text-left text-xs hover:bg-secondary"
-                        onClick={() => setChatMenuOpen(null)}
-                         >
-                         <Pencil className="size-3.5 shrink-0" />
-                         <span>Rename</span>
-                         </button>
-
-                         <button
-                         type="button"
-                        className="flex w-full rounded px-2 py-1.5 gap-1 text-left text-xs text-red-500 hover:bg-red-500/10"
-                        onClick={() => {
-                        closeChat(chat.id);
-                        setChatMenuOpen(null);
-                        }}
-                       >
-                       <Trash2 className="size-3.5 shrink-0" />
-                       <span>Delete</span>
-                      </button>
-                       </div>
-                      ) : null}
-                      </span>
                       </div>
                     );
                   })
@@ -830,6 +938,43 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
           </div>
         </section>
       </div>
+      {chatMenuOpen && chatMenuPosition
+        ? createPortal(
+            <div
+              className="fixed z-[100] w-40 rounded-md border border-border bg-card p-1 shadow-2xl shadow-black/35"
+              style={{ top: chatMenuPosition.top, left: chatMenuPosition.left }}
+            >
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+                onClick={() => void shareChat(chatMenuOpen)}
+              >
+                <Share2 className="size-3.5 shrink-0" />
+                <span>Share</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+                onClick={() => beginRenameChat(chatMenuOpen)}
+              >
+                <Pencil className="size-3.5 shrink-0" />
+                <span>Rename</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-red-500 hover:bg-red-500/10"
+                onClick={() => {
+                  closeChat(chatMenuOpen);
+                  setChatMenuOpen(null);
+                }}
+              >
+                <Trash2 className="size-3.5 shrink-0" />
+                <span>Delete</span>
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
     </Shell>
   );
 }
