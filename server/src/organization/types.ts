@@ -82,4 +82,8 @@ export type AuthContext = {
   keycloakSubject: string;
   organizationId: string | null;
   role: OrganizationRole | null;
+  divisionId: string | null;
+  departmentId: string | null;
+  teamId: string | null;
+  managerUserId: string | null;
 };

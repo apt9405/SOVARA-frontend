@@ -11,7 +11,8 @@ import type {
   OrganizationRole,
   Team,
 } from "./types.js";
-import { hasPermission, type Permission } from "./permissions.js";
+import type { Permission } from "./permissions.js";
+import { can } from "./authorization.js";
 
 const now = () => new Date().toISOString();
 const bootstrapSubject = () => process.env.ORGANIZATION_BOOTSTRAP_SUBJECT?.trim() || null;
@@ -43,12 +44,21 @@ export class OrganizationStore {
           (candidate) => candidate.userId === userId && candidate.status === "ACTIVE",
         )
       : undefined;
+    const assignment = membership && userId
+      ? [...this.assignments.values()].find(
+          (candidate) => candidate.userId === userId && candidate.organizationId === membership.organizationId && candidate.isPrimary,
+        )
+      : undefined;
     return {
       sessionId: session.sessionId,
       userId,
       keycloakSubject: session.subject,
       organizationId: membership?.organizationId ?? null,
       role: membership?.role ?? null,
+      divisionId: assignment?.divisionId ?? null,
+      departmentId: assignment?.departmentId ?? null,
+      teamId: assignment?.teamId ?? null,
+      managerUserId: assignment?.managerUserId ?? null,
     };
   }
 
@@ -105,9 +115,22 @@ export class OrganizationStore {
   }
 
   listMembers(session: ApplicationSession, organizationId: string) {
-    this.requirePermission(session, organizationId, "organization.members.read");
+    const context = this.contextFor(session);
+    if (!context.userId || !context.role) throw new HierarchyError("Organization access denied", 403);
     return [...this.memberships.values()]
       .filter((membership) => membership.organizationId === organizationId)
+      .filter((membership) => {
+        const assignment = [...this.assignments.values()].find(
+          (candidate) => candidate.userId === membership.userId && candidate.organizationId === organizationId && candidate.isPrimary,
+        );
+        return can(context, "organization.members.read", {
+          organizationId,
+          divisionId: assignment?.divisionId,
+          departmentId: assignment?.departmentId,
+          teamId: assignment?.teamId,
+          ownerUserId: membership.userId,
+        });
+      })
       .map((membership) => ({
         ...membership,
         user: this.users.get(membership.userId),
@@ -189,13 +212,13 @@ export class OrganizationStore {
 
   getDivision(session: ApplicationSession, divisionId: string): Division {
     const division = this.division(divisionId);
-    this.requirePermission(session, division.organizationId, "division.read");
+    this.requirePermission(session, division.organizationId, "division.read", { divisionId: division.id });
     return division;
   }
 
   createDepartment(session: ApplicationSession, divisionId: string, input: { name: string; code: string }): Department {
     const division = this.division(divisionId);
-    this.requirePermission(session, division.organizationId, "department.manage");
+    this.requirePermission(session, division.organizationId, "department.manage", { divisionId: division.id });
     return this.createUnique(this.departments, {
       id: randomUUID(),
       divisionId,
@@ -209,14 +232,20 @@ export class OrganizationStore {
   getDepartment(session: ApplicationSession, departmentId: string): Department {
     const department = this.department(departmentId);
     const division = this.division(department.divisionId);
-    this.requirePermission(session, division.organizationId, "department.read");
+    this.requirePermission(session, division.organizationId, "department.read", {
+      divisionId: division.id,
+      departmentId: department.id,
+    });
     return department;
   }
 
   createTeam(session: ApplicationSession, departmentId: string, input: { name: string; code: string }): Team {
     const department = this.department(departmentId);
     const division = this.division(department.divisionId);
-    this.requirePermission(session, division.organizationId, "team.manage");
+    this.requirePermission(session, division.organizationId, "team.manage", {
+      divisionId: division.id,
+      departmentId: department.id,
+    });
     return this.createUnique(this.teams, {
       id: randomUUID(),
       departmentId,
@@ -231,7 +260,11 @@ export class OrganizationStore {
     const team = this.team(teamId);
     const department = this.department(team.departmentId);
     const division = this.division(department.divisionId);
-    this.requirePermission(session, division.organizationId, "team.read");
+    this.requirePermission(session, division.organizationId, "team.read", {
+      divisionId: division.id,
+      departmentId: department.id,
+      teamId: team.id,
+    });
     return team;
   }
 
@@ -321,12 +354,16 @@ export class OrganizationStore {
     return membership;
   }
 
-  private requirePermission(session: ApplicationSession, organizationId: string, permission: Permission): void {
+  private requirePermission(
+    session: ApplicationSession,
+    organizationId: string,
+    permission: Permission,
+    resource: Omit<import("./authorization.js").ResourceContext, "organizationId"> = {},
+  ): void {
     const context = this.contextFor(session);
-    if (context.organizationId !== organizationId || !context.userId) {
-      throw new HierarchyError("Organization access denied", 403);
+    if (!context.userId || !can(context, permission, { organizationId, ...resource })) {
+      throw new HierarchyError("Organization scope or permission denied", 403);
     }
-    if (!hasPermission(context.role, permission)) throw new HierarchyError("Organization permission denied", 403);
   }
 
   private membership(userId: string, organizationId: string): OrganizationMembership {
