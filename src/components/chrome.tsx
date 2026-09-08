@@ -22,7 +22,6 @@ const NAV = [
 ] as const;
 
 function isActive(path: string, to: string) {
-  if (to === "/") return path === "/";
   return path === to || path.startsWith(`${to}/`);
 }
 
@@ -100,7 +99,7 @@ export function Header() {
 
 export function BottomNav() {
   const path = useActivePath();
-  const items = NAV.filter((n) => n.to !== "/");
+  const items = NAV;
   return (
     <nav className="grid h-16 shrink-0 grid-cols-5 border-t border-border bg-card md:hidden">
       {items.map((item) => {

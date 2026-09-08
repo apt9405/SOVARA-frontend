@@ -393,14 +393,12 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
           : chat,
       ),
     );
-    setDraft("");
   }
 
   function updateDraft(value: string) {
     setChats((current) =>
       current.map((chat) => (chat.id === activeChatId ? { ...chat, draft: value } : chat)),
     );
-    setDraft(value);
   }
 
   const model = route ? modelById(route.model) : MODELS[2];

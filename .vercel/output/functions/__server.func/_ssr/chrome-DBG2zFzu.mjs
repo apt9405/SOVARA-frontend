@@ -1,31 +1,15 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { b as require_jsx_runtime, d as useRouterState, v as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { i as Shield, m as Menu, r as Terminal, t as X, u as Radio, v as FileStack, w as BookOpen, x as Cpu } from "../_libs/lucide-react.mjs";
+import { O as BookOpen, S as FileStack, T as Cpu, _ as Menu, i as Terminal, t as X, u as Radio } from "../_libs/lucide-react.mjs";
+import { t as Slot } from "../_libs/radix-ui__react-slot.mjs";
 import { n as clsx, t as cva } from "../_libs/class-variance-authority+clsx.mjs";
 import { t as twMerge } from "../_libs/tailwind-merge.mjs";
-import { t as Slot } from "../_libs/radix-ui__react-slot.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/chrome-CqOWarH-.js
+//#region node_modules/.nitro/vite/services/ssr/assets/chrome-DBG2zFzu.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function cn(...inputs) {
 	return twMerge(clsx(inputs));
-}
-var badgeVariants = cva("inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-xs font-medium tracking-wide uppercase", {
-	variants: { variant: {
-		default: "border-border bg-secondary text-muted-foreground",
-		ok: "border-ok/30 bg-ok/10 text-ok",
-		warn: "border-warn/30 bg-warn/10 text-warn",
-		crit: "border-crit/30 bg-crit/10 text-crit",
-		solid: "border-transparent bg-primary text-primary-foreground"
-	} },
-	defaultVariants: { variant: "default" }
-});
-function Badge({ className, variant, ...props }) {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-		className: cn(badgeVariants({ variant }), className),
-		...props
-	});
 }
 var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[opacity,transform,background-color,color,border-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0", {
 	variants: {
@@ -89,11 +73,6 @@ function Mark({ className }) {
 }
 var NAV = [
 	{
-		to: "/",
-		label: "Prototypes",
-		icon: Shield
-	},
-	{
 		to: "/workbench",
 		label: "Workbench",
 		icon: Terminal
@@ -120,28 +99,10 @@ var NAV = [
 	}
 ];
 function isActive(path, to) {
-	if (to === "/") return path === "/";
 	return path === to || path.startsWith(`${to}/`);
 }
 function useActivePath() {
 	return useRouterState({ select: (s) => s.location.pathname });
-}
-function ClassTape() {
-	const line = [...items, ...items];
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "relative flex h-8 items-center overflow-hidden border-b border-border bg-elevated",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			className: "tape-marquee flex min-w-max items-center gap-8 px-4 font-mono text-xs uppercase tracking-widest text-muted-foreground",
-			children: line.map((item, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-				className: "flex items-center gap-8",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: "text-faint",
-					"aria-hidden": true,
-					children: "/"
-				})]
-			}, `${item}-${i}`))
-		})
-	});
 }
 function Header() {
 	const path = useActivePath();
@@ -157,11 +118,6 @@ function Header() {
 					children: "SOVARA"
 				})]
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
-				variant: "ok",
-				className: "hidden sm:inline-flex",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "led-ok size-1.5 rounded-full bg-ok" }), "Sealed"]
-			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
 				className: "ml-4 hidden items-center gap-1 lg:flex",
 				children: NAV.map((item) => {
@@ -173,19 +129,16 @@ function Header() {
 					}, item.to);
 				})
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "ml-auto flex items-center gap-2",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: "hidden font-mono text-xs text-faint md:inline",
-					children: "gpu-0 · 48 GB"
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 					variant: "ghost",
 					size: "icon",
 					className: "lg:hidden",
 					"aria-label": open ? "Close menu" : "Open menu",
 					onClick: () => setOpen((v) => !v),
 					children: open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Menu, {})
-				})]
+				})
 			}),
 			open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "absolute inset-x-0 top-14 border-b border-border bg-card p-3 lg:hidden",
@@ -208,10 +161,9 @@ function Header() {
 }
 function BottomNav() {
 	const path = useActivePath();
-	const items = NAV.filter((n) => n.to !== "/");
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
 		className: "grid h-16 shrink-0 grid-cols-5 border-t border-border bg-card md:hidden",
-		children: items.map((item) => {
+		children: NAV.map((item) => {
 			const active = isActive(path, item.to);
 			const Icon = item.icon;
 			return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
@@ -226,7 +178,6 @@ function Shell({ children, mode = "page" }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: cn("flex flex-col bg-background text-foreground", mode === "app" ? "h-dvh overflow-hidden" : "min-h-dvh"),
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClassTape, {}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: cn("flex min-h-0 flex-1 flex-col", mode === "app" && "overflow-hidden"),
@@ -237,4 +188,4 @@ function Shell({ children, mode = "page" }) {
 	});
 }
 //#endregion
-export { cn as a, Shell as i, Button as n, Mark as r, Badge as t };
+export { cn as i, Mark as n, Shell as r, Button as t };

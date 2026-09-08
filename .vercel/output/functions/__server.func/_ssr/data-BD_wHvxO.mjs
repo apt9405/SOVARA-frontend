@@ -1,4 +1,4 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/data-BgIw8gnC.js
+//#region node_modules/.nitro/vite/services/ssr/assets/data-BD_wHvxO.js
 var MODELS = [
 	{
 		id: "qwen-vl",

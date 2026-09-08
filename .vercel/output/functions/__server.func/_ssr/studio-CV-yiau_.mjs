@@ -1,21 +1,11 @@
 import { b as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
-import { _ as FileText, b as Download, d as Presentation, r as Terminal, y as FileSpreadsheet } from "../_libs/lucide-react.mjs";
-import { i as Shell, n as Button } from "./chrome-CqOWarH-.mjs";
-import { t as Crop } from "./crop-D4TWFupD.mjs";
-import { i as FINDINGS_CSV, l as SLIDES_HTML, n as DELIVERABLES, r as EXCHANGER_PY, t as APPROVAL_NOTE_HTML } from "./data-BgIw8gnC.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/studio-y8Vae1zn.js
+import { C as FileSpreadsheet, d as Presentation, i as Terminal, w as Download, x as FileText } from "../_libs/lucide-react.mjs";
+import { r as Shell, t as Button } from "./chrome-DBG2zFzu.mjs";
+import { t as Crop } from "./crop-cbxi64mR.mjs";
+import { i as FINDINGS_CSV, l as SLIDES_HTML, n as DELIVERABLES, r as EXCHANGER_PY, t as APPROVAL_NOTE_HTML } from "./data-BD_wHvxO.mjs";
+import { t as downloadText } from "./download-DuRIImBz.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/studio-CV-yiau_.js
 var import_jsx_runtime = require_jsx_runtime();
-function downloadText(filename, body, mime) {
-	const blob = new Blob([body], { type: mime });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
-	document.body.appendChild(a);
-	a.click();
-	a.remove();
-	URL.revokeObjectURL(url);
-}
 var ICONS = {
 	note: FileText,
 	sheet: FileSpreadsheet,

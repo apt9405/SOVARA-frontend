@@ -1,8 +1,8 @@
 import { b as require_jsx_runtime, v as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { T as ArrowRight, h as Lock, l as ScanLine, o as Server } from "../_libs/lucide-react.mjs";
-import { a as cn, i as Shell, n as Button, r as Mark } from "./chrome-CqOWarH-.mjs";
-import { t as Crop } from "./crop-D4TWFupD.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-CtzNl-KC.js
+import { k as ArrowRight, l as ScanLine, o as Server, v as Lock } from "../_libs/lucide-react.mjs";
+import { i as cn, n as Mark, r as Shell, t as Button } from "./chrome-DBG2zFzu.mjs";
+import { t as Crop } from "./crop-cbxi64mR.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-DG5wbU3V.js
 var import_jsx_runtime = require_jsx_runtime();
 function MiniBar({ right = "Sealed" }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -352,7 +352,7 @@ function LandingPage() {
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 							className: "mt-4 max-w-xl font-display text-4xl font-medium leading-tight tracking-tight md:text-5xl lg:text-6xl",
-							children: "The workbench that stays inside the fence."
+							children: "Sovereign Orchestration for Verified AI Reasoning & Automation."
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg",
@@ -483,7 +483,7 @@ function LandingPage() {
 					className: "mx-auto flex max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "SOVARA · prototype for on-prem GPU servers. No cloud inference." }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "font-mono text-xs uppercase tracking-widest",
-						children: "Air gap as a product, not a slogan."
+						children: "Where sovereignty meets intelligence."
 					})]
 				})
 			})

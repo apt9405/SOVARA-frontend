@@ -59,6 +59,7 @@ export type VaultDoc = {
   title: string;
   class: "Internal" | "Restricted" | "Standard";
   kind: string;
+  uploaded: string;
   updated: string;
   pages: number;
   excerpt: string;
@@ -70,6 +71,7 @@ export const VAULT: VaultDoc[] = [
     title: "OISD-STD-116 Fire Protection Facilities",
     class: "Standard",
     kind: "Standard",
+    uploaded: "2017-06",
     updated: "2017-06",
     pages: 84,
     excerpt:
@@ -80,6 +82,7 @@ export const VAULT: VaultDoc[] = [
     title: "Turnaround Isolation SOP — Unit 3",
     class: "Internal",
     kind: "SOP",
+    uploaded: "2025-11",
     updated: "2025-11",
     pages: 41,
     excerpt:
@@ -90,6 +93,7 @@ export const VAULT: VaultDoc[] = [
     title: "Shell-and-tube exchanger design manual",
     class: "Internal",
     kind: "Manual",
+    uploaded: "2024-02",
     updated: "2024-02",
     pages: 126,
     excerpt:
@@ -100,6 +104,7 @@ export const VAULT: VaultDoc[] = [
     title: "Board note template — capital approval",
     class: "Restricted",
     kind: "Template",
+    uploaded: "2026-01",
     updated: "2026-01",
     pages: 6,
     excerpt:
@@ -110,6 +115,7 @@ export const VAULT: VaultDoc[] = [
     title: "P&ID legend ISO 10628 — site overlay",
     class: "Internal",
     kind: "Drawing",
+    uploaded: "2023-09",
     updated: "2023-09",
     pages: 12,
     excerpt:
@@ -120,6 +126,7 @@ export const VAULT: VaultDoc[] = [
     title: "Vendor correspondence — burner registers (redacted)",
     class: "Restricted",
     kind: "Mail",
+    uploaded: "2025-12",
     updated: "2025-12",
     pages: 9,
     excerpt:
