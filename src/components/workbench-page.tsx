@@ -15,15 +15,21 @@ import {
   Send,
   Terminal,
   UserRound,
+  MoreHorizontal,
+  Share2,
+  Pencil,
+  Trash2,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Shell } from "@/components/chrome";
 import { Crop } from "@/components/crop";
 import { PidDrawing, ScanDocument } from "@/components/artifacts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { WorkbenchReportMetrics } from "@/components/workbench-report-metrics";
 import {
   type ModelId,
   type ScenarioEvent,
@@ -43,6 +49,14 @@ type AttachmentItem = {
   name: string;
   size: number;
   type: string;
+};
+type ChatMenuPosition = {
+  top: number;
+  left: number;
+};
+type ChatEditState = {
+  id: string;
+  title: string;
 };
 type ChatItem = {
   id: string;
@@ -148,6 +162,24 @@ function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
+function buildChatShareText(chat: ChatItem) {
+  const lines = [
+    `Chat: ${chat.title}`,
+    `Status: ${chat.status}`,
+    `Preview: ${chat.preview}`,
+  ];
+
+  if (chat.messages.length > 0) {
+    lines.push("");
+    lines.push("Messages:");
+    for (const message of chat.messages) {
+      lines.push(`${message.role === "user" ? "User" : "Assistant"}: ${message.text}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
 export function WorkbenchPage({ demo }: { demo?: string }) {
   const initial = (["inspection", "coding", "pid"] as const).includes(demo as ScenarioId)
     ? (demo as ScenarioId)
@@ -165,9 +197,14 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   const [activeChatId, setActiveChatId] = useState("chat-current");
   const [mobilePane, setMobilePane] = useState<"chat" | "context">("chat");
   const [recentExpanded, setRecentExpanded] = useState(true);
+  const [artifactExpanded, setArtifactExpanded] = useState(true);
   const [reportExpanded, setReportExpanded] = useState(false); 
+  const [chatMenuOpen, setChatMenuOpen] = useState<string | null>(null);
+  const [chatMenuPosition, setChatMenuPosition] = useState<ChatMenuPosition | null>(null);
+  const [chatEdit, setChatEdit] = useState<ChatEditState | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const activeChat = useMemo(
     () => chats.find((chat) => chat.id === activeChatId) ?? chats[0],
@@ -275,6 +312,16 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, tools, activeChatId]);
 
+  useEffect(() => {
+    if (!chatEdit) return;
+    const frame = window.requestAnimationFrame(() => {
+      editInputRef.current?.focus();
+      editInputRef.current?.select();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [chatEdit?.id]);
+
   const preview = useMemo(() => {
     if (activeDemo === "pid") return "pid";
     if (activeDemo === "inspection") return "scan";
@@ -323,6 +370,76 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     setMobilePane("chat");
   }
 
+  function toggleChatMenu(chatId: string, target: HTMLButtonElement) {
+    if (chatMenuOpen === chatId) {
+      setChatMenuOpen(null);
+      setChatMenuPosition(null);
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    const width = 160;
+    const gap = 12;
+    const top = Math.max(12, rect.top - 8);
+    const left = Math.min(rect.right + gap, window.innerWidth - width - 12);
+
+    setChatMenuOpen(chatId);
+    setChatMenuPosition({ top, left });
+  }
+
+  async function shareChat(chatId: string) {
+    const chat = chats.find((item) => item.id === chatId);
+    if (!chat) return;
+
+    const text = buildChatShareText(chat);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      window.alert("Copy failed in this browser.");
+      return;
+    }
+
+    setChatMenuOpen(null);
+    setChatMenuPosition(null);
+  }
+
+  function beginRenameChat(chatId: string) {
+    const chat = chats.find((item) => item.id === chatId);
+    if (!chat) return;
+
+    setChatEdit({ id: chatId, title: chat.title });
+    setChatMenuOpen(null);
+    setChatMenuPosition(null);
+  }
+
+  function commitRenameChat() {
+    if (!chatEdit) return;
+
+    const nextTitle = chatEdit.title.trim();
+    const current = chats.find((item) => item.id === chatEdit.id);
+    const finalTitle = nextTitle || current?.title;
+    if (!current || !finalTitle || finalTitle === current.title) {
+      setChatEdit(null);
+      return;
+    }
+
+    setChats((items) =>
+      items.map((item) =>
+        item.id === chatEdit.id
+          ? {
+              ...item,
+              title: finalTitle,
+            }
+          : item,
+      ),
+    );
+    setChatEdit(null);
+  }
+
+  function cancelRenameChat() {
+    setChatEdit(null);
+  }
+
   function closeChat(chatId: string) {
     setChats((current) =>
       current.map((chat) =>
@@ -368,6 +485,21 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     );
   }
 
+  function removeAttachment(attachmentId: string) {
+  setChats((current) =>
+    current.map((chat) =>
+      chat.id === activeChatId
+        ? {
+            ...chat,
+            attachments: chat.attachments.filter(
+              (attachment) => attachment.id !== attachmentId,
+            ),
+          }
+        : chat,
+    ),
+  );
+}
+
   function onSend() {
     const text = draft.trim();
     if (!text && activeChat.attachments.length === 0) return;
@@ -408,9 +540,9 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   return (
     <Shell mode="app">
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card xl:flex">
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg- xl:flex">
           <div className="border-b border-border p-3">
-            <Button type="button"  className="h-8 w-fyll justify-start gap-1 rounded-md  bg-trans text-left text-white " onClick={createNewChat}>
+            <Button type="button"  className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)] " onClick={createNewChat}>
               <Plus className="size-5" />
               New chat
             </Button>
@@ -421,7 +553,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               type="button"
               aria-expanded={recentExpanded}
               onClick={() => setRecentExpanded((expanded) => !expanded)}
-              className="h-8 w-full justify-start gap-1 rounded-md  bg-trans text-left text-white " >
+              className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)] " >
                 <MessageSquareText className="size-3.5 text-primary" />
                 <p className="font-mono text-[11px] uppercase tracking-[0.24em] ">Recents</p>
               </Button>
@@ -431,27 +563,62 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 {openChats.length > 0 ? (
                   openChats.map((chat) => {
                     const active = chat.id === activeChatId;
+                    const editing = chatEdit?.id === chat.id;
                     return (
                       <div
                         key={chat.id}
                         className={cn(
-                          "flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150",
+                          "relative flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150",
                           active ? "bg-secondary" : "hover:bg-secondary/60",
                         )}
                       >
-                        <button type="button" className="min-w-0 flex-1 text-left" onClick={() => activateChat(chat.id)}>
-                          <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
-                          <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
-                            {chat.preview}
-                          </span>
-                        </button>
+                        {editing ? (
+                          <div className="min-w-0 flex-1">
+                            <input
+                              ref={editInputRef}
+                              value={chatEdit?.title ?? ""}
+                              onChange={(event) =>
+                                setChatEdit((current) =>
+                                  current && current.id === chat.id
+                                    ? { ...current, title: event.target.value }
+                                    : current,
+                                )
+                              }
+                              onBlur={commitRenameChat}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.preventDefault();
+                                  commitRenameChat();
+                                } else if (event.key === "Escape") {
+                                  event.preventDefault();
+                                  cancelRenameChat();
+                                }
+                              }}
+                              className={cn(
+                                "block w-full min-w-0 rounded-md border border-border bg-background/90 px-2 py-1",
+                                "text-[13px] font-medium leading-tight text-foreground shadow-inner outline-none ring-0",
+                                "placeholder:text-muted-foreground",
+                              )}
+                            />
+                            <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
+                              {chat.preview}
+                            </span>
+                          </div>
+                        ) : (
+                          <button type="button" className="min-w-0 flex-1 text-left" onClick={() => activateChat(chat.id)}>
+                            <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
+                            <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
+                              {chat.preview}
+                            </span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           aria-label={`Close ${chat.title}`}
                           className="mt-0.5 rounded-md p-1 text-faint transition-colors hover:bg-background hover:text-foreground"
-                          onClick={() => closeChat(chat.id)}
+                          onClick={(event) => toggleChatMenu(chat.id, event.currentTarget)}
                         >
-                          <X className="size-3" />
+                          <MoreHorizontal className="size-4" />
                         </button>
                       </div>
                     );
@@ -516,10 +683,16 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
             </nav> */}
 
             <section className="border-t border-border px-3 py-3">
-              <Button className="h-8 w-full justify-start gap-1 rounded-md  bg-trans text-left text-white">
+              <Button 
+              type="button"
+              aria-expanded={artifactExpanded}
+              onClick={() => setArtifactExpanded((expanded) => !expanded)}
+              className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
                 <FolderKanban className="size-4 text-primary" />
                 <p className="font-mono text-xs uppercase tracking-widest ">Artifacts</p>
               </Button>
+
+              {artifactExpanded ? (
               <div className="mt-3 space-y-2">
                 {artifacts.length > 0 ? (
                   artifacts.map((id) => {
@@ -541,15 +714,16 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                   <p className="px-1 text-sm text-muted-foreground">Artifacts will appear here.</p>
                 )}
               </div>
+              ) : null}
             </section>
           </div>
-          <div className="group relative border-t border-border p-3">
+          {/* <div className="group relative border-t border-border p-3">
             <button
               type="button"
               className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/50 focus-visible:bg-secondary/50"
             >
               <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Loaded weights</span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Hover</span>
+              
             </button>
             <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 hidden group-hover:block group-focus-within:block">
               <div className="rounded-xl border border-border bg-card/98 p-3 shadow-2xl shadow-black/40 backdrop-blur-md">
@@ -564,7 +738,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 </ul>
               </div>
             </div>
-          </div>
+          </div> */}
           <div className="group relative border-t border-border p-3">
             <button
               type="button"
@@ -590,7 +764,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-2 border-b border-border px-3 py-2 md:px-4">
+          {/* <div className="flex items-center gap-2 border-b border-border px-3 py-2 md:px-4">
             <p className="text-sm font-medium">Agent</p>
             <Badge variant="ok" className="hidden sm:inline-flex">
               {model.name}
@@ -617,7 +791,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 Context
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex min-h-0 flex-1">
             <div
@@ -675,6 +849,14 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                         >
                           <Paperclip className="size-3.5" />
                           <span className="max-w-[12rem] truncate">{attachment.name}</span>
+                          <button
+                          type="button"
+                          aria-label={`Remove ${attachment.name}`}
+                          className="ml-1 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500"
+                          onClick={() => removeAttachment(attachment.id)}
+                          >
+                           <X className="size-3.5" />
+                           </button>
                         </span>
                       ))}
                     </div>
@@ -733,7 +915,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
              type="button"
              aria-expanded={reportExpanded}
              onClick={() => setReportExpanded((expanded) => !expanded)}
-             className="h-8 w-full justify-start rounded-md bg-transparent text-left text-white"
+             className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)]"
              >
               Report
              </Button>
@@ -755,6 +937,43 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
           </div>
         </section>
       </div>
+      {chatMenuOpen && chatMenuPosition
+        ? createPortal(
+            <div
+              className="fixed z-[100] w-40 rounded-md border border-border bg-card p-1 shadow-2xl shadow-black/35"
+              style={{ top: chatMenuPosition.top, left: chatMenuPosition.left }}
+            >
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+                onClick={() => void shareChat(chatMenuOpen)}
+              >
+                <Share2 className="size-3.5 shrink-0" />
+                <span>Share</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-secondary"
+                onClick={() => beginRenameChat(chatMenuOpen)}
+              >
+                <Pencil className="size-3.5 shrink-0" />
+                <span>Rename</span>
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-red-500 hover:bg-red-500/10"
+                onClick={() => {
+                  closeChat(chatMenuOpen);
+                  setChatMenuOpen(null);
+                }}
+              >
+                <Trash2 className="size-3.5 shrink-0" />
+                <span>Delete</span>
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
     </Shell>
   );
 }
@@ -810,6 +1029,8 @@ function ContextRail({
 }) {
   return (
     <div className="flex flex-col gap-5 p-4">
+      <WorkbenchReportMetrics tools={tools} />
+
       <section>
         <p className="font-mono text-xs uppercase tracking-widest text-faint">Plan</p>
         {plan.length === 0 ? (
