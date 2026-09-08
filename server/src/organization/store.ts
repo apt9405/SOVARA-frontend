@@ -11,8 +11,10 @@ import type {
   OrganizationRole,
   Team,
 } from "./types.js";
-import type { Permission } from "./permissions.js";
+import { permissionsForRole, type Permission } from "./permissions.js";
 import { can } from "./authorization.js";
+import { databaseConfigured, databasePool } from "../database/pool.js";
+import { PostgresOrganizationStore } from "./persistent-store.js";
 
 const now = () => new Date().toISOString();
 const bootstrapSubject = () => process.env.ORGANIZATION_BOOTSTRAP_SUBJECT?.trim() || null;
@@ -59,6 +61,7 @@ export class OrganizationStore {
       departmentId: assignment?.departmentId ?? null,
       teamId: assignment?.teamId ?? null,
       managerUserId: assignment?.managerUserId ?? null,
+      permissions: membership?.role ? permissionsForRole(membership.role) : [],
     };
   }
 
@@ -411,4 +414,12 @@ export class OrganizationStore {
   }
 }
 
-export const organizationStore = new OrganizationStore();
+const memoryStoreRequested = process.env.ORG_STORE_MODE === "memory" || process.env.NODE_ENV === "test";
+
+if (!databaseConfigured && !memoryStoreRequested) {
+  throw new Error("DATABASE_URL is required for the organization hierarchy; set ORG_STORE_MODE=memory only for tests");
+}
+
+export const organizationStore = databaseConfigured && databasePool
+  ? new PostgresOrganizationStore(databasePool)
+  : new OrganizationStore();

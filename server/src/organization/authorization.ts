@@ -66,9 +66,14 @@ export function scopeAllows(auth: AuthContext, scope: AuthorizationScope, resour
 }
 
 export function can(auth: AuthContext, permission: Permission, resource: ResourceContext): boolean {
-  return Boolean(auth.role && hasPermission(auth.role, permission) && scopeAllows(auth, scopeForPermission(auth.role, permission), resource));
+  const configuredPermissions = auth.permissions ?? [];
+  const permissionGranted = configuredPermissions.length > 0
+    ? configuredPermissions.includes(permission)
+    : Boolean(auth.role && hasPermission(auth.role, permission));
+  return Boolean(auth.role && permissionGranted && scopeAllows(auth, scopeForPermission(auth.role, permission), resource));
 }
 
 export function permissionsForContext(auth: AuthContext): readonly Permission[] {
-  return auth.role ? ROLE_PERMISSIONS[auth.role] : [];
+  const configuredPermissions = auth.permissions ?? [];
+  return configuredPermissions.length > 0 ? configuredPermissions : auth.role ? ROLE_PERMISSIONS[auth.role] : [];
 }
