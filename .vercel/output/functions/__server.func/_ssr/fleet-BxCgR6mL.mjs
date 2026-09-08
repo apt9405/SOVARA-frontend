@@ -1,10 +1,10 @@
 import { b as require_jsx_runtime, v as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { k as ArrowRight } from "../_libs/lucide-react.mjs";
+import { A as ArrowRight } from "../_libs/lucide-react.mjs";
 import { i as cn, r as Shell, t as Button } from "./chrome-DBG2zFzu.mjs";
 import { t as Crop } from "./crop-cbxi64mR.mjs";
 import { t as Badge } from "./badge-C05TCKcm.mjs";
-import { o as MODELS } from "./data-BD_wHvxO.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/fleet-50r3kLM8.js
+import { o as MODELS } from "./data-Cr8tmURJ.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/fleet-BxCgR6mL.js
 var import_jsx_runtime = require_jsx_runtime();
 var ROUTES = [
 	{

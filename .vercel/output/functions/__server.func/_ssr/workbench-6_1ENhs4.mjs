@@ -1,14 +1,14 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { b as require_jsx_runtime, v as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { C as FileSpreadsheet, D as Check, E as ChevronRight, b as FolderKanban, d as Presentation, f as Plus, g as MessageSquareText, h as Paperclip, i as Terminal, n as UserRound, p as Play, s as Send, t as X, x as FileText, y as LoaderCircle } from "../_libs/lucide-react.mjs";
+import { D as ChevronRight, O as Check, S as FileText, _ as MessageSquareText, a as Terminal, b as LoaderCircle, c as Send, f as Presentation, g as Paperclip, m as Play, n as UserRound, p as Plus, t as X, w as FileSpreadsheet, x as FolderKanban } from "../_libs/lucide-react.mjs";
 import { i as cn, r as Shell, t as Button } from "./chrome-DBG2zFzu.mjs";
 import { t as Crop } from "./crop-cbxi64mR.mjs";
 import { t as Badge } from "./badge-C05TCKcm.mjs";
-import { d as modelById, n as DELIVERABLES, o as MODELS, s as SCENARIOS } from "./data-BD_wHvxO.mjs";
-import { n as Route } from "./router-CTvL9EWY.mjs";
+import { d as modelById, n as DELIVERABLES, o as MODELS, s as SCENARIOS } from "./data-Cr8tmURJ.mjs";
+import { n as Route } from "./router-B4ai-lzH.mjs";
 import { t as Textarea } from "./textarea-DVUUnBVb.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/workbench-mvVFHDiN.js
+//#region node_modules/.nitro/vite/services/ssr/assets/workbench-6_1ENhs4.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function ScanDocument() {

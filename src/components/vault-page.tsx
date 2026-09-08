@@ -1,5 +1,5 @@
-import { Download, PencilLine, Search, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Download, PencilLine, Plus, Search, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { Shell } from "@/components/chrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,20 @@ import { downloadText } from "@/lib/download";
 import { cn } from "@/lib/utils";
 
 const KINDS = ["All", "SOP", "Standard", "Manual", "Drawing", "Template", "Mail"] as const;
+const UPLOAD_KINDS = ["SOP", "Standard", "Manual", "Drawing", "Template", "Mail"] as const;
 const DEFAULT_DESCRIPTION =
   "Retrieval is dense + keyword over this corpus only. Embeddings live on 10.12.0.8. A query never constructs an HTTPS host outside the plant prefix.";
 
 type VaultDraft = {
   title: string;
   description: string;
+};
+
+type UploadDraft = {
+  title: string;
+  category: (typeof UPLOAD_KINDS)[number];
+  description: string;
+  fileName: string;
 };
 
 function formatUploadedDate(value: string) {
@@ -28,15 +36,36 @@ function formatUploadedDate(value: string) {
   }).format(new Date(year, month - 1, 1));
 }
 
+function toFileStem(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "");
+}
+
+function toVaultFileName(doc: VaultDoc | undefined) {
+  if (!doc) return "";
+  return doc.fileName ?? `${doc.title.replace(/[^\w.-]+/g, "_")}.pdf`;
+}
+
+function currentUploadStamp() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export function VaultPage() {
   const [q, setQ] = useState("");
   const [kind, setKind] = useState<(typeof KINDS)[number]>("All");
   const [docs, setDocs] = useState<VaultDoc[]>(() => VAULT);
   const [open, setOpen] = useState<string>(VAULT[0]?.id ?? "");
   const [editing, setEditing] = useState(false);
+  const [addingKnowledge, setAddingKnowledge] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, VaultDraft>>({});
   const [draftTitle, setDraftTitle] = useState("");
   const [draftDescription, setDraftDescription] = useState(DEFAULT_DESCRIPTION);
+  const [uploadDraft, setUploadDraft] = useState<UploadDraft>({
+    title: "",
+    category: "SOP",
+    description: "",
+    fileName: "",
+  });
 
   const rows = useMemo(() => {
     return docs.filter((d) => {
@@ -51,7 +80,7 @@ export function VaultPage() {
   const saved = active ? drafts[active.id] : undefined;
   const displayTitle = saved?.title ?? active?.title ?? "";
   const displayDescription = saved?.description ?? DEFAULT_DESCRIPTION;
-  const displayFileName = active ? `${active.title.replace(/[^\w.-]+/g, "_")}.pdf` : "";
+  const displayFileName = toVaultFileName(active);
 
   useEffect(() => {
     if (!active) return;
@@ -59,6 +88,7 @@ export function VaultPage() {
     setDraftTitle(next?.title ?? active.title);
     setDraftDescription(next?.description ?? DEFAULT_DESCRIPTION);
     setEditing(false);
+    setAddingKnowledge(false);
   }, [active?.id, drafts]);
 
   const handleDownload = () => {
@@ -96,6 +126,68 @@ export function VaultPage() {
     setEditing(false);
   };
 
+  const handleStartAddKnowledge = () => {
+    setAddingKnowledge(true);
+    setEditing(false);
+    setUploadDraft({
+      title: "",
+      category: "SOP",
+      description: "",
+      fileName: "",
+    });
+  };
+
+  const handleUploadFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploadDraft((current) => ({
+      ...current,
+      fileName: file.name,
+      title: current.title.trim() || toFileStem(file.name),
+    }));
+  };
+
+  const handleSaveKnowledge = () => {
+    if (!uploadDraft.fileName) return;
+
+    const fileName = uploadDraft.fileName;
+    const title = uploadDraft.title.trim() || toFileStem(fileName);
+    const description = uploadDraft.description.trim() || DEFAULT_DESCRIPTION;
+    const stamp = currentUploadStamp();
+    const id = `vault-${Date.now().toString(36)}`;
+    const nextDoc: VaultDoc = {
+      id,
+      title,
+      fileName,
+      class: "Internal",
+      kind: uploadDraft.category,
+      uploaded: stamp,
+      updated: stamp,
+      pages: 1,
+      excerpt: description,
+    };
+
+    setDocs((current) => [nextDoc, ...current]);
+    setOpen(id);
+    setAddingKnowledge(false);
+    setUploadDraft({
+      title: "",
+      category: "SOP",
+      description: "",
+      fileName: "",
+    });
+  };
+
+  const handleCancelAddKnowledge = () => {
+    setAddingKnowledge(false);
+    setUploadDraft({
+      title: "",
+      category: "SOP",
+      description: "",
+      fileName: "",
+    });
+  };
+
   const handleDelete = () => {
     if (!active) return;
     const nextDocs = docs.filter((doc) => doc.id !== active.id);
@@ -109,7 +201,13 @@ export function VaultPage() {
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col md:flex-row">
         <section className="flex min-h-0 w-full flex-col border-border md:w-96 md:border-r lg:w-[28rem]">
           <div className="space-y-3 p-4">
-            <p className="font-mono text-xs uppercase tracking-widest text-ok">Knowledge vault</p>
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-mono text-xs uppercase tracking-widest text-ok">Knowledge vault</p>
+              <Button variant="outline" size="sm" type="button" onClick={handleStartAddKnowledge}>
+                <Plus className="size-4" />
+                Add knowledge
+              </Button>
+            </div>
             <h1 className="font-display text-2xl font-medium tracking-tight">Manuals, SOPs, mail.</h1>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
@@ -166,85 +264,175 @@ export function VaultPage() {
         <article className="hidden min-h-0 flex-1 overflow-y-auto p-6 md:block">
           {active ? (
             <div className="mx-auto max-w-xl">
-              <div className="flex items-start justify-between gap-3">
-                <Badge variant={active.class === "Restricted" ? "warn" : "ok"}>{active.class}</Badge>
-                {editing ? (
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" type="button" onClick={handleCancelEdit}>
+              {addingKnowledge ? (
+                <div className="space-y-4 rounded-2xl border border-border bg-elevated/70 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">Upload</p>
+                      <h2 className="mt-2 font-display text-2xl font-medium tracking-tight">Add knowledge</h2>
+                    </div>
+                    <Badge variant="ok">Internal</Badge>
+                  </div>
+
+                  <label className="block space-y-2">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">File</span>
+                    <Input type="file" onChange={handleUploadFileChange} aria-label="Upload file" />
+                    <span className="block text-xs text-muted-foreground">
+                      {uploadDraft.fileName ? `Selected: ${uploadDraft.fileName}` : "Choose a file from your system."}
+                    </span>
+                  </label>
+
+                  <label className="block space-y-2">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">Title</span>
+                    <Input
+                      value={uploadDraft.title}
+                      onChange={(e) =>
+                        setUploadDraft((current) => ({
+                          ...current,
+                          title: e.target.value,
+                        }))
+                      }
+                      placeholder="Document title"
+                      aria-label="Upload title"
+                    />
+                  </label>
+
+                  <label className="block space-y-2">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">Category</span>
+                    <select
+                      value={uploadDraft.category}
+                      onChange={(e) =>
+                        setUploadDraft((current) => ({
+                          ...current,
+                          category: e.target.value as UploadDraft["category"],
+                        }))
+                      }
+                      className="flex h-11 w-full rounded-md border border-input bg-secondary px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label="Upload category"
+                    >
+                      {UPLOAD_KINDS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block space-y-2">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">Description</span>
+                    <Textarea
+                      value={uploadDraft.description}
+                      onChange={(e) =>
+                        setUploadDraft((current) => ({
+                          ...current,
+                          description: e.target.value,
+                        }))
+                      }
+                      className="min-h-32"
+                      placeholder="Short description"
+                      aria-label="Upload description"
+                    />
+                  </label>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={handleSaveKnowledge}
+                      disabled={!uploadDraft.fileName}
+                      className="min-w-24"
+                    >
+                      <Upload className="size-4" />
+                      Save
+                    </Button>
+                    <Button variant="ghost" type="button" onClick={handleCancelAddKnowledge}>
                       <X className="size-4" />
                       Cancel
                     </Button>
-                    <Button variant="outline" size="sm" type="button" onClick={handleSaveEdit}>
-                      Save
-                    </Button>
                   </div>
-                ) : (
-                  <Button variant="outline" size="sm" className="shrink-0" type="button" onClick={handleStartEdit}>
-                    <PencilLine className="size-4" />
-                    Edit
-                  </Button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-3">
+                    <Badge variant={active.class === "Restricted" ? "warn" : "ok"}>{active.class}</Badge>
+                    {editing ? (
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" type="button" onClick={handleCancelEdit}>
+                          <X className="size-4" />
+                          Cancel
+                        </Button>
+                        <Button variant="outline" size="sm" type="button" onClick={handleSaveEdit}>
+                          Save
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button variant="outline" size="sm" className="shrink-0" type="button" onClick={handleStartEdit}>
+                        <PencilLine className="size-4" />
+                        Edit
+                      </Button>
+                    )}
+                  </div>
 
-              <div className="mt-3 space-y-2">
-                {editing ? (
-                  <Input
-                    value={draftTitle}
-                    onChange={(e) => setDraftTitle(e.target.value)}
-                    className="h-11 font-display text-2xl font-medium tracking-tight"
-                    aria-label="Edit title"
-                  />
-                ) : (
-                  <h2 className="font-display text-2xl font-medium tracking-tight">{displayTitle}</h2>
-                )}
-                <p className="font-mono text-xs uppercase tracking-widest text-faint">
-                  {active.pages} pages · uploaded on {formatUploadedDate(active.uploaded)}
-                </p>
-              </div>
-
-              <div className="mt-6 rounded-xl border border-border bg-background/70 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{displayFileName}</p>
-                    <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
-                      Local vault file
+                  <div className="mt-3 space-y-2">
+                    {editing ? (
+                      <Input
+                        value={draftTitle}
+                        onChange={(e) => setDraftTitle(e.target.value)}
+                        className="h-11 font-display text-2xl font-medium tracking-tight"
+                        aria-label="Edit title"
+                      />
+                    ) : (
+                      <h2 className="font-display text-2xl font-medium tracking-tight">{displayTitle}</h2>
+                    )}
+                    <p className="font-mono text-xs uppercase tracking-widest text-faint">
+                      {active.pages} pages · uploaded on {formatUploadedDate(active.uploaded)}
                     </p>
                   </div>
-                  <Button variant="muted" size="sm" className="shrink-0" type="button" onClick={handleDownload}>
-                    <Download className="size-4" />
-                    Download
-                  </Button>
-                </div>
-              </div>
 
-              <div className="mt-6 space-y-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">File description</p>
-                {editing ? (
-                  <Textarea
-                    value={draftDescription}
-                    onChange={(e) => setDraftDescription(e.target.value)}
-                    className="min-h-32"
-                    aria-label="Edit file description"
-                  />
-                ) : (
-                  <p className="rounded-lg border border-border bg-elevated p-4 text-sm leading-relaxed text-foreground/90">
-                    {displayDescription}
-                  </p>
-                )}
-              </div>
+                  <div className="mt-6 rounded-xl border border-border bg-background/70 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">{displayFileName}</p>
+                        <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
+                          Local vault file
+                        </p>
+                      </div>
+                      <Button variant="muted" size="sm" className="shrink-0" type="button" onClick={handleDownload}>
+                        <Download className="size-4" />
+                        Download
+                      </Button>
+                    </div>
+                  </div>
 
-              {editing ? (
-                <div className="mt-4">
-                  <Button
-                    size="sm"
-                    type="button"
-                    onClick={handleDelete}
-                    className="border border-border bg-destructive/10 text-crit hover:bg-destructive/15"
-                  >
-                    Delete file
-                  </Button>
-                </div>
-              ) : null}
+                  <div className="mt-6 space-y-2">
+                    <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">File description</p>
+                    {editing ? (
+                      <Textarea
+                        value={draftDescription}
+                        onChange={(e) => setDraftDescription(e.target.value)}
+                        className="min-h-32"
+                        aria-label="Edit file description"
+                      />
+                    ) : (
+                      <p className="rounded-lg border border-border bg-elevated p-4 text-sm leading-relaxed text-foreground/90">
+                        {displayDescription}
+                      </p>
+                    )}
+                  </div>
+
+                  {editing ? (
+                    <div className="mt-4">
+                      <Button
+                        size="sm"
+                        type="button"
+                        onClick={handleDelete}
+                        className="border border-border bg-destructive/10 text-crit hover:bg-destructive/15"
+                      >
+                        Delete file
+                      </Button>
+                    </div>
+                  ) : null}
+                </>
+              )}
             </div>
           ) : null}
         </article>

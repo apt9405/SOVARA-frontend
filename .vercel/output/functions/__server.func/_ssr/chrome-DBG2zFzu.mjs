@@ -1,7 +1,7 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { b as require_jsx_runtime, d as useRouterState, v as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { O as BookOpen, S as FileStack, T as Cpu, _ as Menu, i as Terminal, t as X, u as Radio } from "../_libs/lucide-react.mjs";
+import { C as FileStack, E as Cpu, a as Terminal, d as Radio, k as BookOpen, t as X, v as Menu } from "../_libs/lucide-react.mjs";
 import { t as Slot } from "../_libs/radix-ui__react-slot.mjs";
 import { n as clsx, t as cva } from "../_libs/class-variance-authority+clsx.mjs";
 import { t as twMerge } from "../_libs/tailwind-merge.mjs";

@@ -1,4 +1,4 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/data-BD_wHvxO.js
+//#region node_modules/.nitro/vite/services/ssr/assets/data-Cr8tmURJ.js
 var MODELS = [
 	{
 		id: "qwen-vl",
@@ -51,6 +51,7 @@ var VAULT = [
 		title: "OISD-STD-116 Fire Protection Facilities",
 		class: "Standard",
 		kind: "Standard",
+		uploaded: "2017-06",
 		updated: "2017-06",
 		pages: 84,
 		excerpt: "Fired heaters shall maintain flame pattern within the designed firebox envelope. Air register malfunction is a reportable deviation."
@@ -60,6 +61,7 @@ var VAULT = [
 		title: "Turnaround Isolation SOP — Unit 3",
 		class: "Internal",
 		kind: "SOP",
+		uploaded: "2025-11",
 		updated: "2025-11",
 		pages: 41,
 		excerpt: "Pump isolation requires suction and discharge blinds plus a tagged drain. P&ID hold points must be signed by the area authority."
@@ -69,6 +71,7 @@ var VAULT = [
 		title: "Shell-and-tube exchanger design manual",
 		class: "Internal",
 		kind: "Manual",
+		uploaded: "2024-02",
 		updated: "2024-02",
 		pages: 126,
 		excerpt: "Duty Q = m · Cp · ΔT. LMTD correction Ft applies for multipass shells. Do not use arithmetic mean temperature difference."
@@ -78,6 +81,7 @@ var VAULT = [
 		title: "Board note template — capital approval",
 		class: "Restricted",
 		kind: "Template",
+		uploaded: "2026-01",
 		updated: "2026-01",
 		pages: 6,
 		excerpt: "Heading, facts, options, recommendation, financial effect, residual risk. No vendor names in the open minute."
@@ -87,6 +91,7 @@ var VAULT = [
 		title: "P&ID legend ISO 10628 — site overlay",
 		class: "Internal",
 		kind: "Drawing",
+		uploaded: "2023-09",
 		updated: "2023-09",
 		pages: 12,
 		excerpt: "Gate valves shown as bow-tie. Spectacle blinds indicated adjacent to isolation valves on pump suction."
@@ -96,6 +101,7 @@ var VAULT = [
 		title: "Vendor correspondence — burner registers (redacted)",
 		class: "Restricted",
 		kind: "Mail",
+		uploaded: "2025-12",
 		updated: "2025-12",
 		pages: 9,
 		excerpt: "OEM lead time for H-302 burner 2 air register: 14 weeks. Site machine shop can fabricate an interim sleeve in 9 days."

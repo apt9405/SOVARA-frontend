@@ -57,6 +57,7 @@ export const MODELS: Model[] = [
 export type VaultDoc = {
   id: string;
   title: string;
+  fileName?: string;
   class: "Internal" | "Restricted" | "Standard";
   kind: string;
   uploaded: string;

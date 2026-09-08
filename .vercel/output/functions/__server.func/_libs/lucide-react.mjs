@@ -657,6 +657,29 @@ var TriangleAlert = createLucideIcon("triangle-alert", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
+var Upload = createLucideIcon("upload", [
+	["path", {
+		d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+		key: "ih7n3h"
+	}],
+	["polyline", {
+		points: "17 8 12 3 7 8",
+		key: "t8dd8p"
+	}],
+	["line", {
+		x1: "12",
+		x2: "12",
+		y1: "3",
+		y2: "15",
+		key: "widbto"
+	}]
+]);
+/**
+* @license lucide-react v0.510.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
 var UserRound = createLucideIcon("user-round", [["circle", {
 	cx: "12",
 	cy: "8",
@@ -680,4 +703,4 @@ var X = createLucideIcon("x", [["path", {
 	key: "d8bk6v"
 }]]);
 //#endregion
-export { FileSpreadsheet as C, Check as D, ChevronRight as E, BookOpen as O, FileStack as S, Cpu as T, Menu as _, ShieldOff as a, FolderKanban as b, Search as c, Presentation as d, Plus as f, MessageSquareText as g, Paperclip as h, Terminal as i, ArrowRight as k, ScanLine as l, PencilLine as m, UserRound as n, Server as o, Play as p, TriangleAlert as r, Send as s, X as t, Radio as u, Lock as v, Download as w, FileText as x, LoaderCircle as y };
+export { ArrowRight as A, FileStack as C, ChevronRight as D, Cpu as E, Check as O, FileText as S, Download as T, MessageSquareText as _, Terminal as a, LoaderCircle as b, Send as c, Radio as d, Presentation as f, Paperclip as g, PencilLine as h, TriangleAlert as i, BookOpen as k, Search as l, Play as m, UserRound as n, ShieldOff as o, Plus as p, Upload as r, Server as s, X as t, ScanLine as u, Menu as v, FileSpreadsheet as w, FolderKanban as x, Lock as y };

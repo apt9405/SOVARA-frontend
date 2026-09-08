@@ -1,12 +1,12 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { b as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
-import { a as ShieldOff } from "../_libs/lucide-react.mjs";
+import { o as ShieldOff } from "../_libs/lucide-react.mjs";
 import { i as cn, r as Shell, t as Button } from "./chrome-DBG2zFzu.mjs";
 import { t as Crop } from "./crop-cbxi64mR.mjs";
 import { t as Badge } from "./badge-C05TCKcm.mjs";
-import { a as LOCAL_NET, c as SEED_PACKETS } from "./data-BD_wHvxO.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/proof-BWnNHZk3.js
+import { a as LOCAL_NET, c as SEED_PACKETS } from "./data-Cr8tmURJ.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/proof-CRH9O4aX.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var ROTATE = [
