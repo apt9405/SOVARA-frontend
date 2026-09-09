@@ -630,57 +630,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               ) : null}
             </section>
 
-            {/* {closedChats.length > 0 ? (
-              <section className="border-b border-border px-3 py-3">
-                <div className="flex items-center gap-2 px-1">
-                  <MessageSquareText className="size-3.5 text-primary" />
-                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Closed chats</p>
-                </div>
-                <div className="mt-2 space-y-1">
-                  {closedChats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className="flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150 hover:bg-secondary/60"
-                    >
-                      <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openChat(chat.id)}>
-                        <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
-                        <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
-                          {chat.preview}
-                        </span>
-                      </button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="muted"
-                        className="h-7 px-2 text-[11px]"
-                        onClick={() => openChat(chat.id)}
-                      >
-                        Open
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
-            <nav className="flex flex-col gap-1 p-2">
-              {SCENARIOS.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => start(s.id)}
-                  className={cn(
-                    "rounded-md px-3 py-3 text-left transition-colors duration-150",
-                    activeDemo === s.id ? "bg-secondary" : "hover:bg-secondary/60",
-                  )}
-                >
-                  <span className="block text-sm font-medium">{s.title}</span>
-                  <span className="mt-0.5 block font-mono text-xs uppercase tracking-wider text-faint">
-                    {s.taskType}
-                  </span>
-                </button>
-              ))}
-            </nav> */}
+            
 
             <section className="border-t border-border px-3 py-3">
               <Button 
@@ -717,63 +667,13 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               ) : null}
             </section>
           </div>
-          {/* <div className="group relative border-t border-border p-3">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/50 focus-visible:bg-secondary/50"
-            >
-              <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Loaded weights</span>
-              
-            </button>
-            <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 hidden group-hover:block group-focus-within:block">
-              <div className="rounded-xl border border-border bg-card/98 p-3 shadow-2xl shadow-black/40 backdrop-blur-md">
-                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-faint">Loaded weights</p>
-                <ul className="mt-2 space-y-1">
-                  {MODELS.filter((m) => m.loaded).map((m) => (
-                    <li key={m.id} className="flex items-center justify-between text-[11px]">
-                      <span>{m.name}</span>
-                      <span className="size-1.5 rounded-full bg-ok" />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div> */}
+          
           <div className="group relative border-t border-border p-3">
             <WorkbenchProfileMenu fallback={USER_PROFILE} />
           </div>
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col">
-          {/* <div className="flex items-center gap-2 border-b border-border px-3 py-2 md:px-4">
-            <p className="text-sm font-medium">Agent</p>
-            <Badge variant="ok" className="hidden sm:inline-flex">
-              {model.name}
-            </Badge>
-            <div className="ml-auto flex rounded-md bg-secondary p-0.5 lg:hidden">
-              <button
-                type="button"
-                className={cn(
-                  "h-9 rounded-sm px-3 text-sm",
-                  mobilePane === "chat" ? "bg-card text-foreground" : "text-muted-foreground",
-                )}
-                onClick={() => setMobilePane("chat")}
-              >
-                Thread
-              </button>
-              <button
-                type="button"
-                className={cn(
-                  "h-9 rounded-sm px-3 text-sm",
-                  mobilePane === "context" ? "bg-card text-foreground" : "text-muted-foreground",
-                )}
-                onClick={() => setMobilePane("context")}
-              >
-                Context
-              </button>
-            </div>
-          </div> */}
-
           <div className="flex min-h-0 flex-1">
             <div
               className={cn(

@@ -132,39 +132,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="border-b border-border py-14 md:py-20">
-          <div className="mx-auto max-w-6xl px-4 md:px-6">
-            <p className="font-mono text-xs uppercase tracking-widest text-faint">Responsive specimens</p>
-            <h2 className="mt-2 max-w-2xl font-display text-3xl font-medium tracking-tight md:text-4xl">
-              One system, three frames.
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Phone for the field engineer. Tablet for the inspection cell. Desktop
-              for the control room. Same tokens, same agent, no horizontal scroll.
-            </p>
-            <div className="mt-10 grid items-start gap-8 md:grid-cols-3">
-              {SPECIMENS.map((s) => (
-                <figure key={s.id} className="flex flex-col gap-3">
-                  <div
-                    className={cn(
-                      "overflow-hidden",
-                      s.id === "phone" && "mx-auto h-96 w-56",
-                      s.id === "tablet" && "h-80",
-                      s.id === "desktop" && "h-64 md:h-80",
-                    )}
-                  >
-                    {s.node}
-                  </div>
-                  <figcaption>
-                    <p className="font-mono text-xs uppercase tracking-widest text-foreground">{s.label}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{s.hint}</p>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </div>
-        </section>
-
+        
         <section className="py-14 md:py-20">
           <div className="mx-auto max-w-6xl px-4 md:px-6">
             <p className="font-mono text-xs uppercase tracking-widest text-faint">Prototype gallery</p>
