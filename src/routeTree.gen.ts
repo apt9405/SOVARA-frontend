@@ -10,11 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArtifactsRouteImport } from './routes/artifacts'
 import { Route as FleetRouteImport } from './routes/fleet'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as StudioRouteImport } from './routes/studio'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as WorkbenchRouteImport } from './routes/workbench'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -22,6 +22,11 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtifactsRoute = ArtifactsRouteImport.update({
+  id: '/artifacts',
+  path: '/artifacts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FleetRoute = FleetRouteImport.update({
@@ -44,11 +49,6 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StudioRoute = StudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
   path: '/vault',
@@ -67,22 +67,22 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/artifacts': typeof ArtifactsRoute
   '/fleet': typeof FleetRoute
   '/login': typeof LoginRoute
   '/proof': typeof ProofRoute
   '/signup': typeof SignupRoute
-  '/studio': typeof StudioRoute
   '/vault': typeof VaultRoute
   '/workbench': typeof WorkbenchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/artifacts': typeof ArtifactsRoute
   '/fleet': typeof FleetRoute
   '/login': typeof LoginRoute
   '/proof': typeof ProofRoute
   '/signup': typeof SignupRoute
-  '/studio': typeof StudioRoute
   '/vault': typeof VaultRoute
   '/workbench': typeof WorkbenchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -90,11 +90,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/artifacts': typeof ArtifactsRoute
   '/fleet': typeof FleetRoute
   '/login': typeof LoginRoute
   '/proof': typeof ProofRoute
   '/signup': typeof SignupRoute
-  '/studio': typeof StudioRoute
   '/vault': typeof VaultRoute
   '/workbench': typeof WorkbenchRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -103,33 +103,33 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/artifacts'
     | '/fleet'
     | '/login'
     | '/proof'
     | '/signup'
-    | '/studio'
     | '/vault'
     | '/workbench'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/artifacts'
     | '/fleet'
     | '/login'
     | '/proof'
     | '/signup'
-    | '/studio'
     | '/vault'
     | '/workbench'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/artifacts'
     | '/fleet'
     | '/login'
     | '/proof'
     | '/signup'
-    | '/studio'
     | '/vault'
     | '/workbench'
     | '/api/auth/$'
@@ -137,11 +137,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArtifactsRoute: typeof ArtifactsRoute
   FleetRoute: typeof FleetRoute
   LoginRoute: typeof LoginRoute
   ProofRoute: typeof ProofRoute
   SignupRoute: typeof SignupRoute
-  StudioRoute: typeof StudioRoute
   VaultRoute: typeof VaultRoute
   WorkbenchRoute: typeof WorkbenchRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -154,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artifacts': {
+      id: '/artifacts'
+      path: '/artifacts'
+      fullPath: '/artifacts'
+      preLoaderRoute: typeof ArtifactsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fleet': {
@@ -184,13 +191,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/studio': {
-      id: '/studio'
-      path: '/studio'
-      fullPath: '/studio'
-      preLoaderRoute: typeof StudioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/vault': {
       id: '/vault'
       path: '/vault'
@@ -217,11 +217,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArtifactsRoute: ArtifactsRoute,
   FleetRoute: FleetRoute,
   LoginRoute: LoginRoute,
   ProofRoute: ProofRoute,
   SignupRoute: SignupRoute,
-  StudioRoute: StudioRoute,
   VaultRoute: VaultRoute,
   WorkbenchRoute: WorkbenchRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

@@ -57,6 +57,7 @@ export const MODELS: Model[] = [
 export type VaultDoc = {
   id: string;
   title: string;
+  fileName?: string;
   class: "Internal" | "Restricted" | "Standard";
   kind: string;
   uploaded: string;
@@ -258,7 +259,7 @@ export const SCENARIOS: Scenario[] = [
       { at: 2600, kind: "tool", name: "vision.read_drawing", detail: "Suction GV-101A, discharge GV-102A, drain DV-14", status: "ok" },
       { at: 3000, kind: "route", model: "llama-reason", reason: "SOP citation and permit language." },
       { at: 3400, kind: "tool", name: "kb.search", detail: "Turnaround Isolation SOP — P-101A", status: "ok" },
-      { at: 4100, kind: "assistant", text: "P-101A isolation: close GV-101A (suction) and GV-102A (discharge), open and tag DV-14 to drain, install spectacle blinds at both hold points. Area authority signature required before pull. Matches Unit 3 Isolation SOP §5.2. List exported to the studio." },
+      { at: 4100, kind: "assistant", text: "P-101A isolation: close GV-101A (suction) and GV-102A (discharge), open and tag DV-14 to drain, install spectacle blinds at both hold points. Area authority signature required before pull. Matches Unit 3 Isolation SOP §5.2. List exported to the Artifacts." },
       { at: 4700, kind: "done" },
     ],
   },

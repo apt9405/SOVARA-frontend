@@ -221,6 +221,7 @@ before(async () => {
       KEYCLOAK_REDIRECT_URI: `${applicationOrigin}/api/auth/callback/keycloak`,
       KEYCLOAK_POST_LOGOUT_REDIRECT_URI: `${frontendOrigin}/`,
       ORGANIZATION_BOOTSTRAP_SUBJECT: "keycloak-user-001",
+      ORG_STORE_MODE: "memory",
       SESSION_COOKIE_SECURE: "true",
     },
     stdio: ["ignore", "pipe", "pipe"],

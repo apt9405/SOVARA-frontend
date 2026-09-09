@@ -19,7 +19,7 @@ const NAV = [
   { to: "/fleet", label: "Fleet", icon: Cpu },
   { to: "/vault", label: "Vault", icon: BookOpen },
   { to: "/proof", label: "Proof", icon: Radio },
-  { to: "/studio", label: "Studio", icon: FileStack },
+  { to: "/Artifacts", label: "Artifacts", icon: FileStack },
 ] as const;
 
 function isActive(path: string, to: string) {

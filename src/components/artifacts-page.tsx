@@ -30,11 +30,11 @@ function handleDownload(id: string) {
   }
 }
 
-export function StudioPage() {
+export function ArtifactsPage() {
   return (
     <Shell mode="page">
       <main className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-12">
-        <p className="font-mono text-xs uppercase tracking-widest text-ok">Deliverable studio</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-ok">Deliverable Artifacts</p>
         <h1 className="mt-2 max-w-2xl font-display text-3xl font-medium tracking-tight md:text-4xl">
           Real files. Not a chat bubble.
         </h1>

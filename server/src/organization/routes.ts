@@ -55,7 +55,7 @@ router.post("/api/organizations", run(async (request, response) => {
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.status(201).json(organizationStore.createOrganization(current, {
+  response.status(201).json(await organizationStore.createOrganization(current, {
     name: text(input.name) ?? "",
     code: text(input.code) ?? "",
     type: text(input.type) ?? null,
@@ -77,14 +77,14 @@ router.get("/api/organization-permissions", run(async (request, response) => {
 router.get("/api/organizations/:organizationId", run(async (request, response) => {
   const current = await session(request, response);
   if (!current) return;
-  response.json(organizationStore.getOrganization(current, param(request, "organizationId")));
+  response.json(await organizationStore.getOrganization(current, param(request, "organizationId")));
 }));
 
 router.patch("/api/organizations/:organizationId", run(async (request, response) => {
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.json(organizationStore.updateOrganization(current, param(request, "organizationId"), {
+  response.json(await organizationStore.updateOrganization(current, param(request, "organizationId"), {
     name: text(input.name),
     type: input.type === null ? null : text(input.type),
     status: input.status === "ACTIVE" || input.status === "SUSPENDED" ? input.status : undefined,
@@ -94,14 +94,14 @@ router.patch("/api/organizations/:organizationId", run(async (request, response)
 router.get("/api/organizations/:organizationId/members", run(async (request, response) => {
   const current = await session(request, response);
   if (!current) return;
-  response.json(organizationStore.listMembers(current, param(request, "organizationId")));
+  response.json(await organizationStore.listMembers(current, param(request, "organizationId")));
 }));
 
 router.post("/api/organizations/:organizationId/members", run(async (request, response) => {
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.status(201).json(organizationStore.addMember(current, param(request, "organizationId"), {
+  response.status(201).json(await organizationStore.addMember(current, param(request, "organizationId"), {
     keycloakSubject: text(input.keycloakSubject) ?? "",
     email: text(input.email) ?? null,
     username: text(input.username) ?? null,
@@ -114,7 +114,7 @@ router.patch("/api/organizations/:organizationId/members/:userId", run(async (re
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.json(organizationStore.updateMember(current, param(request, "organizationId"), param(request, "userId"), {
+  response.json(await organizationStore.updateMember(current, param(request, "organizationId"), param(request, "userId"), {
     role: isOrganizationRole(input.role) ? input.role : undefined,
     status: input.status === "ACTIVE" || input.status === "SUSPENDED" ? input.status : undefined,
   }));
@@ -123,21 +123,21 @@ router.patch("/api/organizations/:organizationId/members/:userId", run(async (re
 router.delete("/api/organizations/:organizationId/members/:userId", run(async (request, response) => {
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
-  organizationStore.removeMember(current, param(request, "organizationId"), param(request, "userId"));
+  await organizationStore.removeMember(current, param(request, "organizationId"), param(request, "userId"));
   response.status(204).end();
 }));
 
 router.get("/api/divisions/:divisionId", run(async (request, response) => {
   const current = await session(request, response);
   if (!current) return;
-  response.json(organizationStore.getDivision(current, param(request, "divisionId")));
+  response.json(await organizationStore.getDivision(current, param(request, "divisionId")));
 }));
 
 router.post("/api/organizations/:organizationId/divisions", run(async (request, response) => {
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.status(201).json(organizationStore.createDivision(current, param(request, "organizationId"), {
+  response.status(201).json(await organizationStore.createDivision(current, param(request, "organizationId"), {
     name: text(input.name) ?? "",
     code: text(input.code) ?? "",
   }));
@@ -146,14 +146,14 @@ router.post("/api/organizations/:organizationId/divisions", run(async (request, 
 router.get("/api/departments/:departmentId", run(async (request, response) => {
   const current = await session(request, response);
   if (!current) return;
-  response.json(organizationStore.getDepartment(current, param(request, "departmentId")));
+  response.json(await organizationStore.getDepartment(current, param(request, "departmentId")));
 }));
 
 router.post("/api/divisions/:divisionId/departments", run(async (request, response) => {
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.status(201).json(organizationStore.createDepartment(current, param(request, "divisionId"), {
+  response.status(201).json(await organizationStore.createDepartment(current, param(request, "divisionId"), {
     name: text(input.name) ?? "",
     code: text(input.code) ?? "",
   }));
@@ -162,14 +162,14 @@ router.post("/api/divisions/:divisionId/departments", run(async (request, respon
 router.get("/api/teams/:teamId", run(async (request, response) => {
   const current = await session(request, response);
   if (!current) return;
-  response.json(organizationStore.getTeam(current, param(request, "teamId")));
+  response.json(await organizationStore.getTeam(current, param(request, "teamId")));
 }));
 
 router.post("/api/departments/:departmentId/teams", run(async (request, response) => {
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.status(201).json(organizationStore.createTeam(current, param(request, "departmentId"), {
+  response.status(201).json(await organizationStore.createTeam(current, param(request, "departmentId"), {
     name: text(input.name) ?? "",
     code: text(input.code) ?? "",
   }));
@@ -179,7 +179,7 @@ router.patch("/api/users/:userId/organization-assignment", run(async (request, r
   const current = await session(request, response);
   if (!current || !(await csrf(request, response))) return;
   const input = body(request);
-  response.json(organizationStore.updateAssignment(current, param(request, "userId"), {
+  response.json(await organizationStore.updateAssignment(current, param(request, "userId"), {
     organizationId: text(input.organizationId) ?? "",
     divisionId: input.divisionId === null ? null : text(input.divisionId),
     departmentId: input.departmentId === null ? null : text(input.departmentId),
