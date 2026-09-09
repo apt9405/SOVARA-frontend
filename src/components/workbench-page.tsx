@@ -39,6 +39,7 @@ import {
   SCENARIOS,
   modelById,
 } from "@/lib/data";
+import { analyze } from "@/lib/sovara-api";
 import { cn } from "@/lib/utils";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string };
@@ -49,6 +50,7 @@ type AttachmentItem = {
   name: string;
   size: number;
   type: string;
+  file: File;
 };
 type ChatMenuPosition = {
   top: number;
@@ -62,6 +64,7 @@ type ChatItem = {
   id: string;
   title: string;
   preview: string;
+  conversationId?: string;
   status: "open" | "closed";
   messages: Msg[];
   plan: string[];
@@ -185,7 +188,34 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
     ? (demo as ScenarioId)
     : undefined;
 
-  const [chats, setChats] = useState<ChatItem[]>(() => [
+  const CHAT_STORAGE_KEY = "sovara-workbench-chats";
+
+const [chats, setChats] = useState<ChatItem[]>(() => {
+  try {
+    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+
+    if (saved) {
+      const parsed = JSON.parse(saved);
+
+      if (Array.isArray(parsed)) {
+        return parsed.map((chat) => ({
+          ...createChat({
+            id: chat.id,
+            title: chat.title,
+            preview: chat.preview,
+          }),
+          ...chat,
+          busy: false,
+          activeDemo: undefined,
+          attachments: [],
+        }));
+      }
+    }
+  } catch {
+    // fall back to initial chats
+  }
+
+  return [
     ...INITIAL_CHATS,
     createChat({
       id: "chat-current",
@@ -193,12 +223,40 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
       preview: "Start a new conversation.",
       activeDemo: initial,
     }),
-  ]);
-  const [activeChatId, setActiveChatId] = useState("chat-current");
+  ];
+});
+
+useEffect(() => {
+  try {
+    const serializableChats = chats.map((chat) => ({
+      ...chat,
+      busy: false,
+      attachments: [],
+      activeDemo: undefined,
+    }));
+
+    localStorage.setItem(
+      CHAT_STORAGE_KEY,
+      JSON.stringify(serializableChats),
+    );
+  } catch {
+    // ignore storage failures
+  }
+}, [chats]);
+
+  const ACTIVE_CHAT_STORAGE_KEY = "sovara-workbench-active-chat";
+
+const [activeChatId, setActiveChatId] = useState(() => {
+  return localStorage.getItem(ACTIVE_CHAT_STORAGE_KEY) ?? "chat-current";
+});
+
+useEffect(() => {
+  localStorage.setItem(ACTIVE_CHAT_STORAGE_KEY, activeChatId);
+}, [activeChatId]);
   const [mobilePane, setMobilePane] = useState<"chat" | "context">("chat");
   const [recentExpanded, setRecentExpanded] = useState(true);
   const [artifactExpanded, setArtifactExpanded] = useState(true);
-  const [reportExpanded, setReportExpanded] = useState(false); 
+  const [reportExpanded, setReportExpanded] = useState(false);
   const [chatMenuOpen, setChatMenuOpen] = useState<string | null>(null);
   const [chatMenuPosition, setChatMenuPosition] = useState<ChatMenuPosition | null>(null);
   const [chatEdit, setChatEdit] = useState<ChatEditState | null>(null);
@@ -475,6 +533,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
       name: file.name,
       size: file.size,
       type: file.type,
+      file,
     }));
     setChats((current) =>
       current.map((chat) =>
@@ -500,32 +559,83 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
   );
 }
 
-  function onSend() {
-    const text = draft.trim();
-    if (!text && activeChat.attachments.length === 0) return;
-    if (busy) return;
+async function onSend() {
+  const text = draft.trim();
+  const files = activeChat.attachments.map((attachment) => attachment.file);
 
-    const lower = text.toLowerCase();
-    if (lower.includes("p-101") || lower.includes("p&id") || lower.includes("isolat")) {
-      start("pid");
-    } else if (lower.includes("python") || lower.includes("lmtd") || lower.includes("code") || lower.includes("sandbox")) {
-      start("coding");
-    } else {
-      start("inspection");
-    }
+  if (!text && files.length === 0) return;
+  if (busy) return;
+
+  const chatId = activeChatId;
+  const conversationId = activeChat.conversationId;
+
+  setChats((current) =>
+    current.map((chat) =>
+      chat.id === chatId
+        ? {
+            ...chat,
+            busy: true,
+            draft: "",
+            attachments: [],
+            messages: [
+              ...chat.messages,
+              {
+                id: `m-${uid()}`,
+                role: "user",
+                text: text || "Analyze attached file(s).",
+              },
+            ],
+          }
+        : chat,
+    ),
+  );
+
+  try {
+    const result = await analyze(text || "Analyze the attached file(s).", conversationId, files);
 
     setChats((current) =>
       current.map((chat) =>
-        chat.id === activeChatId
+        chat.id === chatId
           ? {
               ...chat,
-              draft: "",
-              attachments: [],
+              conversationId: result.conversation_id ?? chat.conversationId,
+              busy: false,
+              messages: [
+                ...chat.messages,
+                {
+                  id: `m-${uid()}`,
+                  role: "assistant",
+                  text: result.final_answer ?? "No response returned.",
+                },
+              ],
+            }
+          : chat,
+      ),
+    );
+  } catch (error) {
+    setChats((current) =>
+      current.map((chat) =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              busy: false,
+              messages: [
+                ...chat.messages,
+                {
+                  id: `m-${uid()}`,
+                  role: "assistant",
+                  text:
+                    error instanceof Error
+                      ? `Backend error: ${error.message}`
+                      : "Backend request failed.",
+                },
+              ],
             }
           : chat,
       ),
     );
   }
+}
 
   function updateDraft(value: string) {
     setChats((current) =>
@@ -549,7 +659,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <section className="border-b border-border px-3 py-3">
-              <Button 
+              <Button
               type="button"
               aria-expanded={recentExpanded}
               onClick={() => setRecentExpanded((expanded) => !expanded)}
@@ -630,10 +740,60 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               ) : null}
             </section>
 
-            
+            {/* {closedChats.length > 0 ? (
+              <section className="border-b border-border px-3 py-3">
+                <div className="flex items-center gap-2 px-1">
+                  <MessageSquareText className="size-3.5 text-primary" />
+                  <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Closed chats</p>
+                </div>
+                <div className="mt-2 space-y-1">
+                  {closedChats.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className="flex items-start gap-2 rounded-lg px-2.5 py-2 transition-colors duration-150 hover:bg-secondary/60"
+                    >
+                      <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openChat(chat.id)}>
+                        <span className="block truncate text-[13px] font-medium leading-tight">{chat.title}</span>
+                        <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground">
+                          {chat.preview}
+                        </span>
+                      </button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="muted"
+                        className="h-7 px-2 text-[11px]"
+                        onClick={() => openChat(chat.id)}
+                      >
+                        Open
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <nav className="flex flex-col gap-1 p-2">
+              {SCENARIOS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => start(s.id)}
+                  className={cn(
+                    "rounded-md px-3 py-3 text-left transition-colors duration-150",
+                    activeDemo === s.id ? "bg-secondary" : "hover:bg-secondary/60",
+                  )}
+                >
+                  <span className="block text-sm font-medium">{s.title}</span>
+                  <span className="mt-0.5 block font-mono text-xs uppercase tracking-wider text-faint">
+                    {s.taskType}
+                  </span>
+                </button>
+              ))}
+            </nav> */}
 
             <section className="border-t border-border px-3 py-3">
-              <Button 
+              <Button
               type="button"
               aria-expanded={artifactExpanded}
               onClick={() => setArtifactExpanded((expanded) => !expanded)}
@@ -652,7 +812,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                     return (
                       <Link
                         key={id}
-                        to="/Artifacts"
+                        to="/artifacts"
                         className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
                       >
                         <Icon className="size-4 text-primary" />
@@ -667,13 +827,63 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
               ) : null}
             </section>
           </div>
-          
+          {/* <div className="group relative border-t border-border p-3">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/50 focus-visible:bg-secondary/50"
+            >
+              <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-faint">Loaded weights</span>
+
+            </button>
+            <div className="pointer-events-none absolute inset-x-3 bottom-full z-20 mb-2 hidden group-hover:block group-focus-within:block">
+              <div className="rounded-xl border border-border bg-card/98 p-3 shadow-2xl shadow-black/40 backdrop-blur-md">
+                <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-faint">Loaded weights</p>
+                <ul className="mt-2 space-y-1">
+                  {MODELS.filter((m) => m.loaded).map((m) => (
+                    <li key={m.id} className="flex items-center justify-between text-[11px]">
+                      <span>{m.name}</span>
+                      <span className="size-1.5 rounded-full bg-ok" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div> */}
           <div className="group relative border-t border-border p-3">
             <WorkbenchProfileMenu fallback={USER_PROFILE} />
           </div>
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col">
+          {/* <div className="flex items-center gap-2 border-b border-border px-3 py-2 md:px-4">
+            <p className="text-sm font-medium">Agent</p>
+            <Badge variant="ok" className="hidden sm:inline-flex">
+              {model.name}
+            </Badge>
+            <div className="ml-auto flex rounded-md bg-secondary p-0.5 lg:hidden">
+              <button
+                type="button"
+                className={cn(
+                  "h-9 rounded-sm px-3 text-sm",
+                  mobilePane === "chat" ? "bg-card text-foreground" : "text-muted-foreground",
+                )}
+                onClick={() => setMobilePane("chat")}
+              >
+                Thread
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "h-9 rounded-sm px-3 text-sm",
+                  mobilePane === "context" ? "bg-card text-foreground" : "text-muted-foreground",
+                )}
+                onClick={() => setMobilePane("context")}
+              >
+                Context
+              </button>
+            </div>
+          </div> */}
+
           <div className="flex min-h-0 flex-1">
             <div
               className={cn(
@@ -802,7 +1012,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
              </Button>
 
              {reportExpanded ? (
-            
+
               <ContextRail
                 plan={plan}
                 planDone={planDone}
@@ -811,9 +1021,9 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                 preview={preview}
                 reason={route?.reason}
               />
-           
+
              ) : null}
-            
+
             </div>
           </div>
         </section>
@@ -987,7 +1197,7 @@ function ContextRail({
               return (
                 <li key={id}>
                   <Link
-                    to="/Artifacts"
+                    to="/artifacts"
                     className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
                   >
                     <Icon className="size-4 text-primary" />
