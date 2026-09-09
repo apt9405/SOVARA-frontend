@@ -1,4 +1,5 @@
 import { databaseConfigured } from "../database/pool.js";
+import { rolePermissionIds } from "../database/authorization-data.js";
 import { membershipRepository } from "../database/memberships.js";
 import { userRepository } from "../database/users.js";
 import { assignmentRepository } from "../database/assignments.js";
@@ -6,47 +7,40 @@ import { isOrganizationRole, type OrganizationRole } from "../organization/roles
 import { permissionsForRole, type Permission } from "../organization/permissions.js";
 import type { ApplicationSession } from "./session.js";
 
-export type AuthenticationData = {
+// This is the only request context used by backend authorization code.
+// It is constructed server-side from the session and application database.
+export type AuthContext = {
   sessionId: string;
+  userId: string | null;
   keycloakSubject: string;
   email: string | null;
   username: string | null;
   displayName: string | null;
-};
-
-export type AuthorizationData = {
-  userId: string | null;
   organizationId: string | null;
   role: OrganizationRole | null;
+  roleIds: readonly string[];
   permissions: readonly Permission[];
+  permissionIds: readonly string[];
   divisionId: string | null;
   departmentId: string | null;
   teamId: string | null;
   managerUserId: string | null;
 };
 
-export type AuthContext = {
-  authentication: AuthenticationData;
-  authorization: AuthorizationData;
-};
-
-function authenticationFromSession(session: ApplicationSession): AuthenticationData {
+function baseContext(session: ApplicationSession): AuthContext {
+  const role = session.role && isOrganizationRole(session.role) ? session.role : null;
   return {
     sessionId: session.sessionId,
+    userId: session.applicationUserId,
     keycloakSubject: session.subject,
     email: session.email,
     username: session.username,
     displayName: session.displayName,
-  };
-}
-
-function fallbackAuthorization(session: ApplicationSession): AuthorizationData {
-  const role = session.role && isOrganizationRole(session.role) ? session.role : null;
-  return {
-    userId: session.applicationUserId,
     organizationId: session.organizationId,
     role,
+    roleIds: [],
     permissions: role ? permissionsForRole(role) : [],
+    permissionIds: [],
     divisionId: null,
     departmentId: null,
     teamId: null,
@@ -55,25 +49,18 @@ function fallbackAuthorization(session: ApplicationSession): AuthorizationData {
 }
 
 export async function resolveAuthContext(session: ApplicationSession): Promise<AuthContext> {
-  const authentication = authenticationFromSession(session);
-  if (!databaseConfigured) {
-    return { authentication, authorization: fallbackAuthorization(session) };
-  }
+  if (!databaseConfigured) return baseContext(session);
 
   const user = await userRepository().findByKeycloakSubject(session.subject);
   if (!user || user.status !== "ACTIVE") {
     return {
-      authentication,
-      authorization: {
-        userId: user?.id ?? null,
-        organizationId: null,
-        role: null,
-        permissions: [],
-        divisionId: null,
-        departmentId: null,
-        teamId: null,
-        managerUserId: null,
-      },
+      ...baseContext(session),
+      userId: user?.id ?? null,
+      organizationId: null,
+      role: null,
+      roleIds: [],
+      permissions: [],
+      permissionIds: [],
     };
   }
 
@@ -83,18 +70,19 @@ export async function resolveAuthContext(session: ApplicationSession): Promise<A
   const assignment = membership
     ? await assignmentRepository().findPrimary(user.id, membership.organizationId)
     : null;
+  const databasePermissions = role ? await rolePermissionIds(role) : { roleIds: [], permissionIds: [] };
 
   return {
-    authentication,
-    authorization: {
-      userId: user.id,
-      organizationId: membership?.organizationId ?? null,
-      role,
-      permissions: role ? permissionsForRole(role) : [],
-      divisionId: assignment?.divisionId ?? null,
-      departmentId: assignment?.departmentId ?? null,
-      teamId: assignment?.teamId ?? null,
-      managerUserId: assignment?.managerUserId ?? null,
-    },
+    ...baseContext(session),
+    userId: user.id,
+    organizationId: membership?.organizationId ?? null,
+    role,
+    roleIds: databasePermissions.roleIds,
+    permissions: role ? permissionsForRole(role) : [],
+    permissionIds: databasePermissions.permissionIds,
+    divisionId: assignment?.divisionId ?? null,
+    departmentId: assignment?.departmentId ?? null,
+    teamId: assignment?.teamId ?? null,
+    managerUserId: assignment?.managerUserId ?? null,
   };
 }

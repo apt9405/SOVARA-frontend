@@ -12,12 +12,12 @@ test("auth context keeps Keycloak identity separate from authorization data", as
   });
   const context = await resolveAuthContext(session);
 
-  assert.equal(context.authentication.keycloakSubject, "keycloak-user-001");
-  assert.equal(context.authentication.email, "person@example.test");
-  assert.equal(context.authorization.userId, null);
-  assert.equal(context.authorization.organizationId, null);
-  assert.equal(context.authorization.role, null);
-  assert.deepEqual(context.authorization.permissions, []);
-  assert.equal("role" in context.authentication, false);
-  assert.equal("organizationId" in context.authentication, false);
+  assert.equal(context.keycloakSubject, "keycloak-user-001");
+  assert.equal(context.email, "person@example.test");
+  assert.equal(context.userId, null);
+  assert.equal(context.organizationId, null);
+  assert.equal(context.role, null);
+  assert.deepEqual(context.permissions, []);
+  assert.deepEqual(context.roleIds, []);
+  assert.deepEqual(context.permissionIds, []);
 });
