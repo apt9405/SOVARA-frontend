@@ -1,6 +1,7 @@
 import { Router, type Request } from "express";
 import { authConfig, isSafeReturnTo } from "./config.js";
 import { resolveApplicationIdentity } from "./application-identity.js";
+import { resolveAuthContext } from "./context.js";
 import {
   authenticateCode,
   createAuthorizationUrl,
@@ -88,27 +89,32 @@ router.get("/api/auth/callback/keycloak", async (request, response) => {
   }
 });
 
-router.get("/api/auth/session", (request, response) => {
+router.get("/api/auth/session", async (request, response, next) => {
   const session = getSession(request);
   if (!session) {
     response.status(401).json({ authenticated: false });
     return;
   }
-  response.json({
-    authenticated: true,
-    user: {
-      id: session.applicationUserId ?? session.subject,
-      keycloakSubject: session.subject,
-      email: session.email,
-      username: session.username,
-      displayName: session.displayName,
-      organizationId: session.organizationId,
-      role: session.role,
-      permissions: session.permissions,
-    },
-    csrfToken: session.csrfToken,
-    expiresAt: new Date(session.expiresAt).toISOString(),
-  });
+  try {
+    const context = await resolveAuthContext(session);
+    response.json({
+      authenticated: true,
+      user: {
+        id: context.authorization.userId ?? context.authentication.keycloakSubject,
+        keycloakSubject: context.authentication.keycloakSubject,
+        email: context.authentication.email,
+        username: context.authentication.username,
+        displayName: context.authentication.displayName,
+        organizationId: context.authorization.organizationId,
+        role: context.authorization.role,
+        permissions: context.authorization.permissions,
+      },
+      csrfToken: session.csrfToken,
+      expiresAt: new Date(session.expiresAt).toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.post("/api/auth/logout", async (request, response, next) => {
