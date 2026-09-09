@@ -3,6 +3,7 @@ export type MembershipStatus = "ACTIVE" | "SUSPENDED" | "LEFT";
 export type UserStatus = "ACTIVE" | "SUSPENDED" | "DISABLED";
 export type { OrganizationRole } from "./roles.js";
 import type { OrganizationRole } from "./roles.js";
+import type { Permission } from "./permissions.js";
 
 export type Organization = {
   id: string;
@@ -86,4 +87,5 @@ export type AuthContext = {
   departmentId: string | null;
   teamId: string | null;
   managerUserId: string | null;
+  permissions: readonly Permission[];
 };

@@ -1,5 +1,7 @@
 import { Router, type Request } from "express";
 import { authConfig, isSafeReturnTo } from "./config.js";
+import { resolveApplicationIdentity } from "./application-identity.js";
+import { resolveAuthContext } from "./context.js";
 import {
   authenticateCode,
   createAuthorizationUrl,
@@ -9,7 +11,7 @@ import {
 } from "./oidc.js";
 import {
   clearSessionCookie,
-  createSession,
+  createApplicationSession,
   deleteSession,
   getSession,
   hasValidCsrfToken,
@@ -77,7 +79,11 @@ router.get("/api/auth/callback/keycloak", async (request, response) => {
       verifier: transaction.verifier,
       nonce: transaction.nonce,
     });
-    const session = createSession(identity);
+    const applicationContext = await resolveApplicationIdentity(identity);
+    const session = await createApplicationSession(identity, applicationContext, {
+      ipAddress: request.ip ?? null,
+      userAgent: request.get("user-agent") ?? null,
+    });
     setSessionCookie(response, session.sessionId);
     response.redirect(frontendRedirect(transaction.returnTo));
   } catch (error) {
@@ -86,29 +92,37 @@ router.get("/api/auth/callback/keycloak", async (request, response) => {
   }
 });
 
-router.get("/api/auth/session", (request, response) => {
-  const session = getSession(request);
+router.get("/api/auth/session", async (request, response, next) => {
+  const session = await getSession(request);
   if (!session) {
     response.status(401).json({ authenticated: false });
     return;
   }
-  response.json({
-    authenticated: true,
-    user: {
-      id: session.subject,
-      keycloakSubject: session.subject,
-      email: session.email,
-      username: session.username,
-      displayName: session.displayName,
-    },
-    csrfToken: session.csrfToken,
-    expiresAt: new Date(session.expiresAt).toISOString(),
-  });
+  try {
+    const context = await resolveAuthContext(session);
+    response.json({
+      authenticated: true,
+      user: {
+        id: context.userId ?? context.keycloakSubject,
+        keycloakSubject: context.keycloakSubject,
+        email: context.email,
+        username: context.username,
+        displayName: context.displayName,
+        organizationId: context.organizationId,
+        role: context.role,
+        permissions: context.permissions,
+      },
+      csrfToken: session.csrfToken,
+      expiresAt: new Date(session.expiresAt).toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.post("/api/auth/logout", async (request, response, next) => {
   try {
-    const session = getSession(request);
+    const session = await getSession(request);
     if (!session) {
       clearSessionCookie(response);
       response.status(204).end();
@@ -119,7 +133,7 @@ router.post("/api/auth/logout", async (request, response, next) => {
       response.status(403).json({ error: "csrf_validation_failed" });
       return;
     }
-    deleteSession(session);
+    await deleteSession(session);
     clearSessionCookie(response);
     const logoutUrl = await createLogoutUrl();
     if (logoutUrl) {
@@ -132,8 +146,8 @@ router.post("/api/auth/logout", async (request, response, next) => {
   }
 });
 
-export function requireApplicationSession(request: Request) {
-  const session = getSession(request);
+export async function requireApplicationSession(request: Request) {
+  const session = await getSession(request);
   if (!session) {
     const error = new Error("Unauthorized");
     (error as Error & { status?: number }).status = 401;
