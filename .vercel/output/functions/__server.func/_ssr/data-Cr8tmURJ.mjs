@@ -414,7 +414,7 @@ var SCENARIOS = [
 			{
 				at: 4100,
 				kind: "assistant",
-				text: "P-101A isolation: close GV-101A (suction) and GV-102A (discharge), open and tag DV-14 to drain, install spectacle blinds at both hold points. Area authority signature required before pull. Matches Unit 3 Isolation SOP §5.2. List exported to the studio."
+				text: "P-101A isolation: close GV-101A (suction) and GV-102A (discharge), open and tag DV-14 to drain, install spectacle blinds at both hold points. Area authority signature required before pull. Matches Unit 3 Isolation SOP §5.2. List exported to the Artifacts."
 			},
 			{
 				at: 4700,

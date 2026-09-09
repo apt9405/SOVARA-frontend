@@ -4,7 +4,7 @@ import { r as Shell, t as Button } from "./chrome-DBG2zFzu.mjs";
 import { t as Crop } from "./crop-cbxi64mR.mjs";
 import { i as FINDINGS_CSV, l as SLIDES_HTML, n as DELIVERABLES, r as EXCHANGER_PY, t as APPROVAL_NOTE_HTML } from "./data-Cr8tmURJ.mjs";
 import { t as downloadText } from "./download-DuRIImBz.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/studio-ST5iaiyw.js
+//#region node_modules/.nitro/vite/services/ssr/assets/Artifacts-ST5iaiyw.js
 var import_jsx_runtime = require_jsx_runtime();
 var ICONS = {
 	note: FileText,
@@ -18,7 +18,7 @@ function handleDownload(id) {
 	else if (id === "code-lmtd") downloadText("exchanger_duty.py", EXCHANGER_PY, "text/x-python");
 	else if (id === "slides-ta") downloadText("Turnaround_brief.html", SLIDES_HTML, "text/html");
 }
-function StudioPage() {
+function ArtifactsPage() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Shell, {
 		mode: "page",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
@@ -26,7 +26,7 @@ function StudioPage() {
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "font-mono text-xs uppercase tracking-widest text-ok",
-					children: "Deliverable studio"
+					children: "Deliverable Artifacts"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 					className: "mt-2 max-w-2xl font-display text-3xl font-medium tracking-tight md:text-4xl",
@@ -122,6 +122,6 @@ function StudioPage() {
 		})
 	});
 }
-var SplitComponent = StudioPage;
+var SplitComponent = ArtifactsPage;
 //#endregion
 export { SplitComponent as component };

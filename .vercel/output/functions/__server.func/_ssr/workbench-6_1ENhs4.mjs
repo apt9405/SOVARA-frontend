@@ -553,7 +553,7 @@ function WorkbenchPage({ demo }) {
 									if (!d) return null;
 									const Icon = ARTIFACT_ICON[d.kind];
 									return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-										to: "/studio",
+										to: "/Artifacts",
 										className: "flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary",
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { className: "size-4 text-primary" }), d.name]
 									}, id);
@@ -911,7 +911,7 @@ function ContextRail({ plan, planDone, tools, artifacts, preview, reason }) {
 					if (!d) return null;
 					const Icon = ARTIFACT_ICON[d.kind];
 					return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-						to: "/studio",
+						to: "/Artifacts",
 						className: "flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { className: "size-4 text-primary" }), d.name]
 					}) }, id);

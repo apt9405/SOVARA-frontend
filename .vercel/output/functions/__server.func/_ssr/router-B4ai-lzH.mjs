@@ -380,8 +380,8 @@ var $$splitComponentImporter$4 = () => import("./fleet-BxCgR6mL.mjs");
 var Route$4 = createFileRoute("/fleet")({ component: lazyRouteComponent($$splitComponentImporter$4, "component") });
 var $$splitComponentImporter$3 = () => import("./proof-CRH9O4aX.mjs");
 var Route$3 = createFileRoute("/proof")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
-var $$splitComponentImporter$2 = () => import("./studio-ST5iaiyw.mjs");
-var Route$2 = createFileRoute("/studio")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
+var $$splitComponentImporter$2 = () => import("./Artifacts-ST5iaiyw.mjs");
+var Route$2 = createFileRoute("/Artifacts")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
 var $$splitComponentImporter$1 = () => import("./vault-ClvtEnBJ.mjs");
 var Route$1 = createFileRoute("/vault")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
 var $$splitComponentImporter = () => import("./workbench-6_1ENhs4.mjs");
@@ -405,9 +405,9 @@ var rootRouteChildren = {
 		path: "/proof",
 		getParentRoute: () => Route$6
 	}),
-	StudioRoute: Route$2.update({
-		id: "/studio",
-		path: "/studio",
+	ArtifactsRoute: Route$2.update({
+		id: "/Artifacts",
+		path: "/Artifacts",
 		getParentRoute: () => Route$6
 	}),
 	VaultRoute: Route$1.update({

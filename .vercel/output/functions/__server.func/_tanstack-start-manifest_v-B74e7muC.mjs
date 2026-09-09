@@ -6,7 +6,7 @@ var tsrStartManifest = () => ({ routes: {
 			"/",
 			"/fleet",
 			"/proof",
-			"/studio",
+			"/Artifacts",
 			"/vault",
 			"/workbench"
 		],
@@ -50,11 +50,11 @@ var tsrStartManifest = () => ({ routes: {
 			"/assets/data-BX9EooNT.js"
 		]
 	},
-	"/studio": {
-		filePath: "D:/Users/Lenovo/OneDrive/Documents/GitHub/SOVARA-frontend/src/routes/studio.tsx",
+	"/Artifacts": {
+		filePath: "D:/Users/Lenovo/OneDrive/Documents/GitHub/SOVARA-frontend/src/routes/Artifacts.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/studio-Cix28LaW.js",
+			"/assets/Artifacts-Cix28LaW.js",
 			"/assets/chrome-DFY5vHsy.js",
 			"/assets/download-BnLfrNEv.js",
 			"/assets/presentation-iJZVLJlv.js",

@@ -702,7 +702,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
                     return (
                       <Link
                         key={id}
-                        to="/studio"
+                        to="/Artifacts"
                         className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
                       >
                         <Icon className="size-4 text-primary" />
@@ -1087,7 +1087,7 @@ function ContextRail({
               return (
                 <li key={id}>
                   <Link
-                    to="/studio"
+                    to="/Artifacts"
                     className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
                   >
                     <Icon className="size-4 text-primary" />

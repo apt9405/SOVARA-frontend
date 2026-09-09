@@ -93,8 +93,8 @@ var NAV = [
 		icon: Radio
 	},
 	{
-		to: "/studio",
-		label: "Studio",
+		to: "/Artifacts",
+		label: "Artifacts",
 		icon: FileStack
 	}
 ];
