@@ -9,6 +9,10 @@ export type ApplicationSession = IdentityClaims & {
   csrfToken: string;
   createdAt: number;
   expiresAt: number;
+  applicationUserId: string | null;
+  organizationId: string | null;
+  role: string | null;
+  permissions: readonly string[];
 };
 
 const sessions = new Map<string, ApplicationSession>();
@@ -23,7 +27,15 @@ function cookieAttributes(): string {
   ].join("; ");
 }
 
-export function createSession(identity: IdentityClaims): ApplicationSession {
+export function createSession(
+  identity: IdentityClaims,
+  applicationContext: {
+    userId?: string | null;
+    organizationId?: string | null;
+    role?: string | null;
+    permissions?: readonly string[];
+  } = {},
+): ApplicationSession {
   const now = Date.now();
   const session: ApplicationSession = {
     ...identity,
@@ -31,6 +43,10 @@ export function createSession(identity: IdentityClaims): ApplicationSession {
     csrfToken: randomToken(32),
     createdAt: now,
     expiresAt: now + authConfig.sessionTtlMs,
+    applicationUserId: applicationContext.userId ?? null,
+    organizationId: applicationContext.organizationId ?? null,
+    role: applicationContext.role ?? null,
+    permissions: applicationContext.permissions ?? [],
   };
   sessions.set(session.sessionId, session);
   return session;

@@ -1,5 +1,6 @@
 import { Router, type Request } from "express";
 import { authConfig, isSafeReturnTo } from "./config.js";
+import { resolveApplicationIdentity } from "./application-identity.js";
 import {
   authenticateCode,
   createAuthorizationUrl,
@@ -77,7 +78,8 @@ router.get("/api/auth/callback/keycloak", async (request, response) => {
       verifier: transaction.verifier,
       nonce: transaction.nonce,
     });
-    const session = createSession(identity);
+    const applicationContext = await resolveApplicationIdentity(identity);
+    const session = createSession(identity, applicationContext);
     setSessionCookie(response, session.sessionId);
     response.redirect(frontendRedirect(transaction.returnTo));
   } catch (error) {
@@ -95,11 +97,14 @@ router.get("/api/auth/session", (request, response) => {
   response.json({
     authenticated: true,
     user: {
-      id: session.subject,
+      id: session.applicationUserId ?? session.subject,
       keycloakSubject: session.subject,
       email: session.email,
       username: session.username,
       displayName: session.displayName,
+      organizationId: session.organizationId,
+      role: session.role,
+      permissions: session.permissions,
     },
     csrfToken: session.csrfToken,
     expiresAt: new Date(session.expiresAt).toISOString(),
