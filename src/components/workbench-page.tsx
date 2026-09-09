@@ -796,7 +796,7 @@ export function WorkbenchPage({ demo }: { demo?: string }) {
              type="button"
              aria-expanded={reportExpanded}
              onClick={() => setReportExpanded((expanded) => !expanded)}
-             className="h-8 w-full justify-start gap-1 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)]"
+             className="h-8 w-full justify-start gap-5 rounded-md border border-2A2E2C/700 bg-[#171A1C] text-left text-white shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_7px_18px_rgba(0,0,0,0.5)] active:translate-y-0 active:shadow-[0_2px_6px_rgba(0,0,0,0.3)]"
              >
               Report
              </Button>
