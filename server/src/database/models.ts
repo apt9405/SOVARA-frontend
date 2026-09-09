@@ -34,6 +34,33 @@ export type OrganizationMembershipRecord = {
   leftAt: Date | null;
 };
 
+export type DivisionRecord = {
+  id: string;
+  organizationId: string;
+  name: string;
+  code: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type DepartmentRecord = {
+  id: string;
+  divisionId: string;
+  name: string;
+  code: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type TeamRecord = {
+  id: string;
+  departmentId: string;
+  name: string;
+  code: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type OrganizationalAssignmentRecord = {
   id: string;
   userId: string;
