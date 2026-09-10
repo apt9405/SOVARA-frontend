@@ -72,6 +72,14 @@ type ChatItem = {
   route: { model: ModelId; reason: string } | null;
   tools: ToolRow[];
   artifacts: ArtifactId[];
+  generatedDeliverables: string[];
+  executionReport?: {
+  telemetry: Record<string, unknown>;
+  traceability: unknown[];
+  evidence: unknown[];
+  verificationStatus: string;
+  verificationResults: unknown[];
+};
   busy: boolean;
   draft: string;
   attachments: AttachmentItem[];
@@ -95,6 +103,7 @@ function createChat(seed: Partial<ChatItem> & Pick<ChatItem, "id" | "title" | "p
     route: null,
     tools: [],
     artifacts: [],
+    generatedDeliverables: [],
     busy: false,
     draft: "",
     attachments: [],
@@ -275,6 +284,9 @@ useEffect(() => {
   const route = activeChat?.route ?? null;
   const tools = activeChat?.tools ?? EMPTY_TOOLS;
   const artifacts = activeChat?.artifacts ?? EMPTY_ARTIFACTS;
+  const generatedDeliverables =
+    activeChat?.generatedDeliverables ?? [];
+  const executionReport = activeChat?.executionReport;
   const busy = activeChat?.busy ?? false;
   const draft = activeChat?.draft ?? "";
   const activeDemo = activeChat?.activeDemo;
@@ -591,7 +603,45 @@ async function onSend() {
   );
 
   try {
-    const result = await analyze(text || "Analyze the attached file(s).", conversationId, files);
+    const result = await analyze(
+      text || "Analyze the attached file(s).",
+      conversationId,
+      files,
+      "report",
+    );
+    const generatedDeliverables = result.generated_deliverables ?? [];
+    const executionReport = {
+      telemetry: result.execution_telemetry ?? {},
+      traceability: result.traceability ?? [],
+      evidence: result.evidence ?? [],
+      verificationStatus: result.verification_status ?? "unknown",
+      verificationResults: result.verification_results ?? [],
+    };
+
+    const traceability = (result.traceability ?? []) as Array<{
+      node_name: string;
+      model_used?: string;
+      tools_used?: string[];
+      success: boolean;
+    }>;
+
+    const liveTools: ToolRow[] = traceability.flatMap(
+      (trace, traceIndex) =>
+        (trace.tools_used ?? []).map((tool, toolIndex) => ({
+          id: `${tool}-${traceIndex}-${toolIndex}`,
+          name: tool,
+          detail: `${trace.node_name.replaceAll("_", " ")}${
+            trace.model_used && trace.model_used !== "n/a"
+              ? ` · ${trace.model_used}`
+              : ""
+          }`,
+          status: trace.success ? "ok" : "run",
+        })),
+    );
+
+    const livePlan: string[] = traceability.map(
+      (trace) => trace.node_name.replaceAll("_", " "),
+    );
 
     setChats((current) =>
       current.map((chat) =>
@@ -600,6 +650,11 @@ async function onSend() {
               ...chat,
               conversationId: result.conversation_id ?? chat.conversationId,
               busy: false,
+              generatedDeliverables,
+              executionReport,
+              tools: liveTools,
+              plan: livePlan,
+              planDone: true,
               messages: [
                 ...chat.messages,
                 {
@@ -619,6 +674,7 @@ async function onSend() {
           ? {
               ...chat,
               busy: false,
+              generatedDeliverables: [],
               messages: [
                 ...chat.messages,
                 {
@@ -804,24 +860,47 @@ async function onSend() {
 
               {artifactExpanded ? (
               <div className="mt-3 space-y-2">
-                {artifacts.length > 0 ? (
-                  artifacts.map((id) => {
-                    const d = DELIVERABLES.find((x) => x.id === id);
-                    if (!d) return null;
-                    const Icon = ARTIFACT_ICON[d.kind];
-                    return (
-                      <Link
-                        key={id}
-                        to="/artifacts"
-                        className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
-                      >
-                        <Icon className="size-4 text-primary" />
-                        {d.name}
-                      </Link>
-                    );
-                  })
+                {artifacts.length > 0 || generatedDeliverables.length > 0 ? (
+                  <>
+                    {artifacts.map((id) => {
+                      const d = DELIVERABLES.find((x) => x.id === id);
+                      if (!d) return null;
+
+                      const Icon = ARTIFACT_ICON[d.kind];
+
+                      return (
+                        <Link
+                          key={id}
+                          to="/artifacts"
+                          className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
+                        >
+                          <Icon className="size-4 text-primary" />
+                          {d.name}
+                        </Link>
+                      );
+                    })}
+
+                    {generatedDeliverables.map((path) => {
+                      const fileName = path.split(/[\\/]/).pop() ?? path;
+
+                      return (
+                        <a
+                          key={path}
+                          href={`/sovara-api/download/${path.match(/req_[a-f0-9]+/)?.[0]}/${fileName}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
+                        >
+                          <FileText className="size-4 text-primary" />
+                          {fileName}
+                        </a>
+                      );
+                    })}
+                  </>
                 ) : (
-                  <p className="px-1 text-sm text-muted-foreground">Artifacts will appear here.</p>
+                  <p className="px-1 text-sm text-muted-foreground">
+                    Artifacts will appear here.
+                  </p>
                 )}
               </div>
               ) : null}
@@ -1020,6 +1099,8 @@ async function onSend() {
                 artifacts={artifacts}
                 preview={preview}
                 reason={route?.reason}
+                generatedDeliverables={generatedDeliverables}
+                executionReport={executionReport}
               />
 
              ) : null}
@@ -1107,6 +1188,8 @@ function ContextRail({
   planDone,
   tools,
   artifacts,
+  generatedDeliverables,
+  executionReport,
   preview,
   reason,
 }: {
@@ -1114,13 +1197,21 @@ function ContextRail({
   planDone: boolean;
   tools: ToolRow[];
   artifacts: ArtifactId[];
-
+  generatedDeliverables: string[];
+   executionReport?: {
+    telemetry: Record<string, unknown>;
+    traceability: unknown[];
+    evidence: unknown[];
+    verificationStatus: string;
+    verificationResults: unknown[];
+  };
   preview: "scan" | "pid" | "code" | null;
   reason?: string;
 }) {
   return (
-    <div className="flex flex-col gap-5 p-4">
-      <WorkbenchReportMetrics tools={tools} />
+    <div className="flex max-h-[calc(100vh-7rem)] flex-col gap-5 overflow-y-auto p-4">
+      <WorkbenchReportMetrics tools={tools} 
+      executionReport={executionReport}/>
 
       <section>
         <p className="font-mono text-xs uppercase tracking-widest text-faint">Plan</p>
@@ -1186,34 +1277,60 @@ function ContextRail({
         </div>
       </section>
 
-      {artifacts.length > 0 ? (
-        <section>
-          <p className="font-mono text-xs uppercase tracking-widest text-faint">On the bench</p>
-          <ul className="mt-2 space-y-1">
-            {artifacts.map((id) => {
-              const d = DELIVERABLES.find((x) => x.id === id);
-              if (!d) return null;
-              const Icon = ARTIFACT_ICON[d.kind];
-              return (
-                <li key={id}>
-                  <Link
-                    to="/artifacts"
-                    className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
-                  >
-                    <Icon className="size-4 text-primary" />
-                    {d.name}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : (
-        <p className="flex items-center gap-2 text-xs text-faint">
-          <Paperclip className="size-3.5" />
-          Files stay in the vault
-        </p>
-      )}
+      {artifacts.length > 0 || generatedDeliverables.length > 0 ? (
+  <section>
+    <p className="font-mono text-xs uppercase tracking-widest text-faint">
+      On the bench
+    </p>
+
+    <ul className="mt-2 space-y-1">
+      {artifacts.map((id) => {
+            const d = DELIVERABLES.find((x) => x.id === id);
+            if (!d) return null;
+
+            const Icon = ARTIFACT_ICON[d.kind];
+
+            return (
+              <li key={id}>
+                <Link
+                  to="/artifacts"
+                  className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
+                >
+                  <Icon className="size-4 text-primary" />
+                  {d.name}
+                </Link>
+              </li>
+            );
+          })}
+
+          {generatedDeliverables.map((path) => {
+            const fileName = path.split(/[\\/]/).pop() ?? path;
+            const requestId = path.match(/req_[a-f0-9]+/)?.[0];
+
+            if (!requestId) return null;
+
+            return (
+              <li key={path}>
+                <a
+                  href={`/sovara-api/download/${requestId}/${fileName}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-secondary"
+                >
+                  <FileText className="size-4 text-primary" />
+                  {fileName}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ) : (
+      <p className="flex items-center gap-2 text-xs text-faint">
+        <Paperclip className="size-3.5" />
+        Files stay in the vault
+      </p>
+    )}
     </div>
   );
 }
